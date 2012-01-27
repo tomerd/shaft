@@ -1,0 +1,14 @@
+target
+war
+bin
+.DS_Store
+.scala_dependencies
+.settings
+*.tmproj
+.gwt
+.cache
+storage
+.metadata
+db
+log
+
