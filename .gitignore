@@ -4,6 +4,7 @@ bin
 .DS_Store
 .scala_dependencies
 .settings
+.classpath
 *.tmproj
 .gwt
 .cache
