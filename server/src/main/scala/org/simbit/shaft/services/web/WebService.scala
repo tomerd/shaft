@@ -6,7 +6,7 @@ import scala.collection._
 
 import org.eclipse.jetty.server.{Server, Connector, Handler}
 import org.eclipse.jetty.server.nio.SelectChannelConnector
-import org.eclipse.jetty.server.handler.{ HandlerList, ResourceHandler, DefaultHandler }
+import org.eclipse.jetty.server.handler.{ ContextHandler, HandlerList, ResourceHandler, DefaultHandler }
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 
@@ -50,6 +50,30 @@ class ShaftWebService extends ShaftService with WebService
 			server.setHandler(handlers)
 			
 			additioalHandlers.foreach { handlers.addHandler(_) }
+			
+			//val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
+			//context.setContextPath(config.path + "/scripts/element")		
+			//context.addServlet(new ServletHolder(new ConfigurationServlet()), "/*")
+			//web.registerHandler(context)
+			
+			val context = new ContextHandler()
+			context.setContextPath(config.path)
+			
+			val handler = new HandlerList()
+			val url = ShaftServer.server.getClass.getClassLoader.getResource("web/public")			
+			if (null == url) throw new Exception("webapp directory not found. expected at web/public")
+			val resourceHandler = new ResourceHandler()			
+	        resourceHandler.setDirectoriesListed(false)
+	        resourceHandler.setWelcomeFiles(Array("index.htm", "index.html"))	 
+	        resourceHandler.setResourceBase(url.toExternalForm)
+	        //web.registerHandler(resourceHandler)			    
+	        //web.registerHandler(new DefaultHandler())	
+	        handler.addHandler(resourceHandler)
+	        handler.addHandler(new DefaultHandler())
+	        context.setHandler(handler)
+	        handlers.addHandler(context)
+			
+			
 			
 	        server.start
 	        			

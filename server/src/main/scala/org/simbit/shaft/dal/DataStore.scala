@@ -14,5 +14,7 @@ trait DataStore
 	def inTransaction[A](a: => A):A
 	
 	val servicesInjectionModule:Module
+	
+	override def toString():String = this.getClass.getName
 }
 

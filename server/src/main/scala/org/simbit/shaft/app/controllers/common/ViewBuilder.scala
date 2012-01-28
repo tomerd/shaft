@@ -15,6 +15,7 @@ import util._
 	
 protected object ViewBuilder
 {
+	private val DEFAULT_VIEW_NAME = "default"
 	// FIXME: read formats from configuration file
 	private val dateFormat = "dd/MMM/yyyy"
 	private val dateFormatter = new java.text.SimpleDateFormat(dateFormat)
@@ -42,43 +43,6 @@ protected object ViewBuilder
 	{		
 		objectToXml(entities, nodeName.getOrElse("list"), viewName)
 	}
-	
-	/*
-	def build(entity:Model, viewName:Option[String]):Option[Elem] = 
-	{
-		val modelName = StringHelpers.snakify(entity.getClass.getSimpleName)
-		val nodeName = modelName
-		val directoryName = StringHelpers.pluralify(modelName)		
-		buildForModel(entity, nodeName, directoryName, viewName)
-	}
-	
-	def build(entities:Iterable[_ <: Model], viewName:Option[String]):Option[Elem] = 
-	{
-		// FIXME: model name is wrong
-		val modelName = StringHelpers.snakify(entities.getClass.getSimpleName)
-		val nodeName = StringHelpers.pluralify(modelName)
-		val directoryName = StringHelpers.pluralify(modelName)
-		buildForModel(entities, nodeName, directoryName, viewName)
-	}
-	
-	
-	private def buildForModel(data:AnyRef, nodeName:String, viewsDirectoryName:String, viewName:Option[String]):Option[Elem] =
-	{		
-		val view = viewName match 
-		{
-			case Some(name) => findView(viewsDirectoryName, name)
-			case None => findView(viewsDirectoryName, "default")
-		}
-		
-		view match
-		{
-			case view:TemplatedView => build(data, view)
-			case view:FieldsView => objectToXml(data, nodeName, Some(view))
-			//case None => objectToXml(data, nodeName, Some(new BlackListView()))						
-			case _ => throw new ViewException("unknown view type " + view)
-		}
-	}
-	*/
 	
 	private def objectToXml(data:Any, nodeName:String, viewName:Option[String]):Option[Elem] =
 	{
@@ -148,7 +112,7 @@ protected object ViewBuilder
 		val view = viewName match 
 		{
 			case Some(name) => findView(directoryName, name)
-			case None => findView(directoryName, "default")
+			case None => findView(directoryName, DEFAULT_VIEW_NAME)
 		}
 		
 		view match
@@ -192,13 +156,7 @@ protected object ViewBuilder
 	
 	private def findView(directory:String, name:String):View =
 	{		
-		// FIXME: this is an ugly hack to figure out the package name....find a beter way to do this
-		val services = com.twitter.ostrich.admin.ServiceTracker.peek
-		val packageName = services.find(!_.getClass.getPackage.getName.startsWith("com.twitter")) match
-		{
-			case Some(service) => service.getClass.getPackage.getName
-			case _ => throw new ViewException("internal frameowrk error, failed deduing package name while attempting to generate view app/views/%s/%s".format(directory, StringHelpers.camelify(name)))
-		}
+		val packageName = ShaftServer.server.getClass.getPackage.getName
 		val viewClassName = "%s.app.views.%s.%s".format(packageName, directory, StringHelpers.camelify(name))
 		
 		val view = try 
@@ -208,7 +166,7 @@ protected object ViewBuilder
 		}
 		catch
 		{
-			case e:ClassNotFoundException => throw new ViewException("view '%s' not found, expected at app/views/%s/%s".format(name, directory, StringHelpers.camelify(name)))
+			case e:ClassNotFoundException => if (DEFAULT_VIEW_NAME == name) new BlackListView() else throw new ViewException("view '%s' not found, expected at app/views/%s/%s".format(name, directory, StringHelpers.camelify(name)))
 			case e:NoSuchMethodException => throw new ViewException("view '%s' was found, but could not be instantiated. make sure it has a simple constructor")
 			case e:SecurityException => throw new ViewException("view '%s' was found, but could not be instantiated due to access/security issue")
 			case e:IllegalAccessException => throw new ViewException("view '%s' was found, but could not be instantiated due to access/security issue")

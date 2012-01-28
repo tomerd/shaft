@@ -23,13 +23,22 @@ private object BlackListView
 
 protected case class BlackListView(fields:String*) extends FieldsView
 {
-	val exclude = BlackListView.coreExclude ++ fields
+	def this(fields:Array[String]) = this(fields:_*)
+	// the arrow in fields: => Seq[String is a trick to overcome type erasure
+	def this(fields: => Seq[String]) = this(fields:_*)	
+	
+	private val exclude = BlackListView.coreExclude ++ fields
 	def approve(field:String) = !exclude.contains(field)
 }
 
+
 protected case class WhiteListView(fields:String*) extends FieldsView
-{
-	val include = fields.dropWhile(BlackListView.coreExclude.contains(_))
+{	
+	def this(fields:Array[String]) = this(fields:_*)
+	// the arrow in fields: => Seq[String is a trick to overcome type erasure
+	def this(fields: => Seq[String]) = this(fields:_*)
+	
+	private val include = fields.dropWhile(BlackListView.coreExclude.contains(_))
 	def approve(field:String) = include.contains(field)
 }
 

@@ -23,7 +23,7 @@ import services.ServiceManager
 import config._
 import util._
 
-trait ShaftServerLoader[T <: ShaftServer[_]] extends Logger 
+trait ShaftServerLauncher[T <: ShaftServer[_]] extends Logger 
 {
 	final def main(args:Array[String]):Unit = 
 	{
@@ -50,6 +50,20 @@ trait ShaftServerLoader[T <: ShaftServer[_]] extends Logger
 	}
 }
 
+protected object ShaftServer
+{	
+	val server:ShaftServer[_] =
+	{
+		// FIXME: this is an ugly hack to figure out the package name....find a better way to do this
+		val services = com.twitter.ostrich.admin.ServiceTracker.peek
+		services.find(!_.getClass.getPackage.getName.startsWith("com.twitter")) match
+		{
+			case Some(service) => service.asInstanceOf[ShaftServer[_]]
+			case _ => throw new Exception("internal frameowrk error, failed deduing package name")
+		}
+	}			
+}
+
 protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) extends Service with Logger
 {
 	private val startTime = System.currentTimeMillis
@@ -59,7 +73,7 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 	private val bus = new MessageBus()  	
 	//private var shuttingDown = false
 	
-	protected val name:String
+	val name:String
 		
 	final override def start()
 	{
@@ -69,8 +83,10 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 		
 		messageHandler.start		
 		bus.subscribe(classOf[Error], messageHandler)
+		
+		loadRoutes()		
 				
-		ServiceManager.startup(bus, config)
+		ServiceManager.startup(bus, config.shaftConfig)
 
 		info("ready for action")
 		info("--------------------------------------------------------------------------------------------------------")
@@ -114,6 +130,22 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 	def reload(config:C)
 	{
 		//TODO: implement this for real 
+	}
+	
+	private def loadRoutes()
+	{		
+		val routes = try 
+		{
+			val clasName = "%s.config.Routes".format(this.getClass.getPackage.getName)
+			val clazz = Class.forName(clasName)
+			val constructor = clazz.getConstructor()		
+			clazz.getConstructor().newInstance()
+		}
+		catch
+		{
+			case e:ClassNotFoundException => throw new Exception("routes not found, expected at config/Routes")
+			case _ => throw new Exception("routes class was found, but could not be instantiated. make sure it has a simple constructor")
+		}
 	}
 	
 	private val messageHandler:Actor = new Actor 

@@ -15,8 +15,9 @@ import util._
 protected trait Controller
 {			
 	// transaction manager
-	@Inject var transactionManager:TransactionManager = null
+	@Inject private var transactionManager:TransactionManager = null
 	@Inject var request:Request = null
+	@Inject var session:Session = null
 		
 	// transactions
 	protected final def newTransaction[A](a: => A):A = transactionManager.newTransaction(a)

@@ -16,25 +16,16 @@ case class LoggerConfig(level:String, fileSize:Int, maxFiles:Int)
 
 class LoggerConfigBuilder extends Config[LoggerConfig]
 {
-	var level:String = null
-	var fileSize:Int = 0
-	var maxFiles:Int = 0
+	var level:String = "INFO"
+	var fileSize:Int = 1 // MB
+	var maxFiles:Int = 10
 
 	def apply() = LoggerConfig(level, fileSize, maxFiles)
 }
 
-/*
-sealed abstract class StorageAdapter(name:String)
-
-object StorageAdapter 
-{
-	case object SQUERYL extends StorageAdapter("SQUERYL")
-	case object MEMORY extends StorageAdapter("MEMORY")
-}
-*/
 case class StorageConfig(store:dal.DataStore, configuration:DataStoreConfig) 
 {
-	override def toString() = ("store=%s, configuration=[%s]").format(store, configuration) 		
+	override def toString() = ("store=%s, configuration=[%s]").format(store.getClass.getSimpleName, configuration) 		
 }
 
 class StorageConfigBuilder extends Config[StorageConfig]
@@ -52,31 +43,22 @@ case class RdbmsConfig(driver:String, url:String, user:String, password:String) 
 	override def toString() = ("driver=%s, url=%s, user=%s").format( driver, url, user) 		
 }
 
-/*
-class RdbmsStorageConfigBuilder extends Config[RdbmsStorageConfig]
-{
-	var driver:String = null
-	var url:String = null
-	var user:String = null
-	var password:String = null
 
-	def apply() = RdbmsStorageConfig(driver, url, user, password)
-}
-*/
-
-case class WebConfig(host:String, port:Int) 
+case class WebConfig(host:String, port:Int, path:String) 
 {
-	override def toString() = ("host=%s, port=%s").format(host, port)
+	override def toString() = ("host=%s, port=%s, path=%s").format(host, port,  path)
 }
 
 class WebConfigBuilder extends Config[WebConfig]
 {
-	var host:String = null
-	var port:Int = 0
+	var host:String = "127.0.0.1"
+	var port:Int = 8080
+	var path:String = "/"
 
-	def apply() = WebConfig(host, port)
+	def apply() = WebConfig(host, port, path)
 }
 
+/*
 case class WebAppConfig(enabled:Boolean, path:String, client:WebClientConfig) 
 {
 	override def toString() = ("enabled=%s, path=%s").format(enabled, path) 		
@@ -90,10 +72,13 @@ class WebAppConfigBuilder extends Config[WebAppConfig]
 
 	def apply() = WebAppConfig(enabled, path, client)
 }
+*/
 
+/*
 case class WebClientConfig
 {
 }
+*/
 
 /*
 case class CommunicationConfig(agents:List[InternalCommunicationConfig])
@@ -113,21 +98,17 @@ trait InternalCommunicationConfig
 }
 */
 
-case class RestConfig(enabled:Boolean, path:String/*, routes:org.simbit.shaft.routes.Routes*/) //extends InternalCommunicationConfig
+case class RestConfig(enabled:Boolean, path:String) //extends InternalCommunicationConfig
 {
-	override def toString() = ("enabled=%s, path=%s").format(enabled, path/*, routes*/)
+	override def toString() = ("enabled=%s, path=%s").format(enabled, path)
 }
 
 class RestConfigBuilder extends Config[RestConfig]
 {
-	var enabled:Boolean = false
-	var path:String = null
-	// FIXME: find a better way to do this
-	// just to force initializing the routes class
-	var routes:AnyRef = null
-	//var views:AnyRef = null
+	var enabled:Boolean = true
+	var path:String = "/rest"
 
-	def apply() = RestConfig(enabled, path/*, routes*/)
+	def apply() = RestConfig(enabled, path)
 }
 
 case class BayeuxConfig(enabled:Boolean, path:String, requestChannel:String, responseChannel:String) //extends InternalCommunicationConfig
@@ -138,33 +119,47 @@ case class BayeuxConfig(enabled:Boolean, path:String, requestChannel:String, res
 class BayeuxConfigBuilder extends Config[BayeuxConfig]
 {
 	var enabled:Boolean = false
-	var path:String = null
-	var requestChannel:String = null
-	var responseChannel:String = null
+	var path:String = "/bayeux"
+	var requestChannel:String = "/request"
+	var responseChannel:String = "/response"
 
 	def apply() = BayeuxConfig(enabled, path, requestChannel, responseChannel)
 }
 
-
-
 // rollup
-abstract class ShaftServerConfiguration(val storage:StorageConfig, 
-										val web:WebConfig, 
-										val webapp:WebAppConfig, 
-										val rest:RestConfig, 
-										val bayeux:BayeuxConfig) //extends Configuration
+/*
+protected final object ShaftConfig
 {
-	//override def toString() = ("storage=[%s]\nweb=[%s]\nwebapp=[%s]\nrest=[%s]\nbayeux=[%s]").format(storage, web, webapp, rest, bayeux) 		
+	def apply(configurator:ShaftServerConfigurator[_,_]):ShaftConfig = 
+	{
+		new ShaftConfig(configurator.storage(), 
+						configurator.web(),
+						configurator.rest(),
+						configurator.bayeux())
+	}
+}
+*/
+
+protected final case class ShaftConfig(	storage:StorageConfig, 
+										web:WebConfig,  
+										rest:RestConfig, 
+										bayeux:BayeuxConfig)
+{
+	override def toString() = ("storage=[%s]\nweb=[%s]\nrest=[%s]\nbayeux=[%s]").format(storage, web, rest, bayeux)		
 }
 
-trait ShaftServerConfigurator[S <: ShaftServer[C], C <: ShaftServerConfiguration] extends ServerConfig[S] 
+protected abstract class ShaftServerConfiguration(val shaftConfig:ShaftConfig)
+
+protected trait ShaftServerConfigurator[S <: ShaftServer[C], C <: ShaftServerConfiguration] extends ServerConfig[S] 
 { 
-	final protected val logger = new LoggerConfigBuilder
-	final protected val storage = new StorageConfigBuilder 
-	final protected val web = new WebConfigBuilder
-	final protected val webapp = new WebAppConfigBuilder
-	final protected val rest = new RestConfigBuilder
-	final protected val bayeux = new BayeuxConfigBuilder
+	final val logger = new LoggerConfigBuilder()
+	final val storage = new StorageConfigBuilder()
+	final val web = new WebConfigBuilder()
+	final val rest = new RestConfigBuilder()
+	final val bayeux = new BayeuxConfigBuilder()
+	
+	private var _shaftConfig:ShaftConfig = null
+	final def shaftConfig = _shaftConfig
 	
 	final def apply(runtime:RuntimeEnvironment) = 
 	{
@@ -173,7 +168,9 @@ trait ShaftServerConfigurator[S <: ShaftServer[C], C <: ShaftServerConfiguration
 	  	
 		val loggerConfig = logger()
 		LoggerConfigurator.configure(Level.toLevel(loggerConfig.level), loggerConfig.fileSize, loggerConfig.maxFiles)
-	
+		
+		_shaftConfig = new ShaftConfig(storage(), web(), rest(), bayeux())
+			
 		this.createServer(this.buildConfiguration())
 	}
 	
@@ -182,9 +179,9 @@ trait ShaftServerConfigurator[S <: ShaftServer[C], C <: ShaftServerConfiguration
 		server.reload(this.buildConfiguration())
 	}
 		
-	def createServer(config:C):S
+	protected def createServer(config:C):S
 	
-	def buildConfiguration():C
+	protected def buildConfiguration():C
 	
 }
 
