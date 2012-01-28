@@ -1,8 +1,8 @@
-********************************************
-			   WORK IN PROGRESS
+****************************************************
+		   WORK IN PROGRESS
 
 	this project is still in incubation
-********************************************
+****************************************************
 
 shaft is an open source web application framework. shaft focuses on:
 1. software developer's efficiency, along the lines of ruby on rails.
