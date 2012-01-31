@@ -29,7 +29,7 @@ protected abstract class MemoryStorage[T <: KeyedModel[T]] extends Storage[T]
 	
 	def update(entity:T):T = { store.update(entity.id, entity); entity }
 		
-	def delete(key:Long):Unit =store -= key
+	def delete(key:Long):Unit = store -= key
 	
 	def delete(keys:Iterable[Long]):Unit = store --= keys
 }

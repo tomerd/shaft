@@ -90,7 +90,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  			val restRequest = parseRequest(request) match
 	  			{
 	  				case Some(request) => request
-	  				case None => throw new UnknownRequestException()
+	  				case None => throw new UnknownRequestException("%s:%s".format(request.getMethod, request.getPathInfo))
 	  			}
 	  				  			
 	  			val result = invokeApi(restRequest, sessionAccessor.currentSession)	  			 
@@ -397,6 +397,6 @@ private class RestRequestParams(map:Map[String,String]) extends RequestParams
 
 private class BadImplementationException(description:String, cause:Throwable=null) extends Throwable(description, cause)
 private class BadRequestException(description:String) extends Throwable(description)
-private class UnknownRequestException extends BadRequestException("unknown request")
+private class UnknownRequestException(request:String) extends BadRequestException("unknown request '%s', make sure it is correctly mapped in routes".format(request))
 
 
