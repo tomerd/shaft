@@ -32,6 +32,7 @@
 		<jetty.version>7.6.0.RC2</jetty.version>
 		<!--jetty.version>8.0.4.v20111024</jetty.version-->
 		<guice.version>3.0</guice.version>
+		<commons-fileupload.version>1.2.2</commons-fileupload.version>
 		<!--commons-math.version>2.2</commons-math.version-->
 		<!-- common plugin settings -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -214,6 +215,18 @@
 		  <groupId>com.google.inject</groupId>
 		  <artifactId>guice</artifactId>
 		  <version>${guice.version}</version>
+		</dependency>
+		<!-- commons-fileupload -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>${commons-fileupload.version}</version>
+		</dependency>
+		<!-- not sure why this is required explicitly, should be derived as commons-fileupload dependency -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.1</version>
 		</dependency>
 		<!-- commons-math -->
 		<!--dependency>

@@ -4,6 +4,7 @@ package comm
 package rest
 
 import java.util.Date
+import java.io.InputStream
 
 import scala.xml._
 import scala.collection._
@@ -12,18 +13,18 @@ import scala.collection.JavaConversions._
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 
-import com.google.inject.{ Guice, Inject, Injector, Module, Binder } 
+import org.apache.commons.fileupload.servlet.ServletFileUpload
+import org.apache.commons.fileupload.disk.DiskFileItemFactory
+import org.apache.commons.fileupload.FileItem
+
+import com.google.inject.{ Guice, Inject, Injector, Module, Binder }
 
 import services.storage.StorageService
 import services.web.WebService
-
 import app.controllers._
 import app.controllers.common._
-//import app.controllers.annotation._
-
 import config._
 import routes._
-
 import util._
 
 trait RestCommunicationService extends CommunicationService
@@ -117,11 +118,15 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		var path = request.getPathInfo
   			if (null == path || path.length == 0 || "/".equals(path)) return None
   			
+  			val serverName = request.getServerName
+  			
   			val secured = "https" == request.getProtocol
   			
-  			val params = RequestParams(request.getParameterMap)
+  			val multiPartForm = parseMultiPartForm(request)  
   			
-  			val serverName = request.getServerName
+	  		val params = new RestRequestParams(request.getParameterMap.map{ case (key:String,value:Array[String]) => key -> value.reduceLeft(_ + "," + _) }.toMap[String, String] ++ multiPartForm.params)
+	  		
+	  		val files = multiPartForm.files 
   			
   			val view = path.indexOf(":") match
   			{  				
@@ -154,7 +159,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		val parts = path.split("/")
 	  		routes.get(request.getMethod + ":" + path) match
 	  		{
-	  			case Some(route:FullRoute) => Some(RestRequest(secured, contentType, parts(0), route, None, view, params, serverName))
+	  			case Some(route:FullRoute) => Some(RestRequest(secured, contentType, parts(0), route, None, view, params, files, serverName))
 	  			case None =>
 	  			{	  				
 	  				// FIXME: find a better way to do this	 
@@ -170,12 +175,47 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 						{
 							val api = if (":api" == route.api) parts(2) else route.api
 							val id = if (route.id.isDefined && ":id" == route.id.get) Some(parts(1)) else None
-							Some(RestRequest(secured, contentType, parts(0), FullRoute(route.controller, api), id, view, params, serverName))		
+							Some(RestRequest(secured, contentType, parts(0), FullRoute(route.controller, api), id, view, params, files, serverName))		
 						}
 						case _ => None
 					} 				
 	  			}
 	  		}
+	  	}
+	  	
+	  	private def parseMultiPartForm(request:HttpServletRequest):MultiPartForm =
+	  	{
+	  		if (!ServletFileUpload.isMultipartContent(request)) return MultiPartForm(Map.empty[String, String], Nil)
+	  				
+	  		// TODO: use configuration settings?
+			//val maxUploadMemorySize = 1*1024*1024
+			val baseUrl = ShaftServer.server.getClass.getClassLoader.getResource(".")
+			val tempDirPath = baseUrl.getFile() + "/temp"
+			val tempDirectory = new File(tempDirPath)
+			if (!tempDirectory.exists()) tempDirectory.mkdir();
+			val factory = new DiskFileItemFactory();
+			factory.setRepository(tempDirectory);
+
+			val upload = new ServletFileUpload(factory)
+			val items = upload.parseRequest(request) 
+			var iterator = items.iterator()
+			
+			val params = mutable.HashMap[String, String]()
+			val files = mutable.ListBuffer[UploadedFile]()
+			while (iterator.hasNext()) 
+			{
+			    val item = iterator.next().asInstanceOf[FileItem]				
+			    if (item.isFormField) 
+			    {
+			    	params += item.getFieldName -> item.getString
+			    } 
+			    else 
+			    {
+			    	files += UploadedFile(item.getFieldName, item.getName, item.getContentType, item.getSize, item.getInputStream)
+			    }
+			}
+			
+			MultiPartForm(params, files)
 	  	}
 	  	
 	  	private def invokeApi(request:RestRequest, session:Session):String = 
@@ -364,8 +404,21 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  									id:Option[String], 
 	  									view:Option[String], 
 	  									params:RequestParams,
+	  									files:Iterable[UploadedFile],
 	  									serverName:String)
 	  	
+	  	private case class MultiPartForm(params:Map[String,String], files:Iterable[UploadedFile])
+
+	  	private case class UploadedFile(fieldName:String, name:String, contentType:String, size:Long, stream:InputStream)
+	  
+	  	private class RestRequestParams(map:Map[String,String]) extends RequestParams
+		{	  		
+			def get(key:String) = map.get(key)		 
+			def iterator = map.iterator
+			def +[B >: String](kv:(String, B)) = map + (kv)
+			def - (key:String) = map - key
+		}
+			  	
 	  	private object ContentType extends Enumeration 
 	  	{
 	  		type ContentType = Value
@@ -374,25 +427,9 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	}
 }
 
-private object RequestParams
-{
-	val empty:RequestParams = RequestParams(Map.empty[String,String])
-	
-	def apply(map:Map[_,_]):RequestParams =
-	{
-		apply(map.map{ case (key:String,value:Array[String]) => key -> value.reduceLeft(_ + "," + _) }.toMap[String, String])
-	}
-	
-	def apply(map:immutable.Map[String,String]):RequestParams = new RestRequestParams(map)
-}
 
-private class RestRequestParams(map:Map[String,String]) extends RequestParams
-{	  		
-	def get(key:String) = map.get(key)		 
-	def iterator = map.iterator
-	def +[B >: String](kv:(String, B)) = map + (kv)
-	def - (key:String) = map - key
-}
+
+
 
 
 private class BadImplementationException(description:String, cause:Throwable=null) extends Throwable(description, cause)

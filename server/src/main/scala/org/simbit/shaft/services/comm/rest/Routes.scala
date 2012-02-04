@@ -44,9 +44,12 @@ protected object RestRoutes
 		routes += "GET:%s/:id/:api".format(service) -> FullRoute(controller, ":api", Some(":id"))
 		// FIXME routes for testing
 		routes += "GET:%s/create".format(service) -> FullRoute(controller, "create")
+		routes += "POST:%s/create".format(service) -> FullRoute(controller, "create")
+		routes += "GET:%s/update/:id".format(service) -> FullRoute(controller, "update")
+		routes += "POST:%s/update/:id".format(service) -> FullRoute(controller, "update")
 		routes += "GET:%s/destroy/:id".format(service) -> FullRoute(controller, "destroy")
 		// ~ FIXME routes for testing
-		routes += "POST:%s".format(service) -> FullRoute(controller, "create")
+		routes += "POST:%s".format(service) -> FullRoute(controller, "create")		
 		routes += "POST:%s/:id/:api".format(service) -> FullRoute(controller, ":api", Some(":id"))
 		routes += "PUT:%s/:id".format(service) -> FullRoute(controller, "update", Some(":id"))
 		routes += "DELETE:%s/:id".format(service) -> FullRoute(controller, "destroy", Some(":id"))

@@ -7,6 +7,7 @@ import java.util.UUID
 import scala.collection._
 
 import app.controllers.common.Session
+import app.controllers.common.SessionImpl
 
 private object SessionManager
 {
@@ -59,7 +60,7 @@ protected trait SessionAccesor
 	{
 		val newToken = UUID.randomUUID.toString
 		val expires = new Date(System.currentTimeMillis + SESSSION_TIMEOUT*60*1000)
-		val session = if (oldSession.isDefined) oldSession.get.copy(newToken, expires) else new Session(newToken, expires)
+		val session = if (oldSession.isDefined) oldSession.get.asInstanceOf[SessionImpl].update(newToken, expires) else new SessionImpl(newToken, expires)
 		if (oldToken.isDefined) SessionManager.replace(oldToken.get, session) else SessionManager.add(session)
 		setSessionToken(newToken, expires)
 		session
