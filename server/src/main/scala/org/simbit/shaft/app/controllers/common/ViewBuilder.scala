@@ -13,7 +13,7 @@ import app.views._
 
 import util._
 	
-protected object ViewBuilder
+protected object ViewBuilder extends Logger
 {
 	private val DEFAULT_VIEW_NAME = "default"
 	// FIXME: read formats from configuration file
@@ -22,38 +22,43 @@ protected object ViewBuilder
 	private val timestampFormat = "%s HH:mm:ss".format(dateFormat)	
 	private val timestampFormatter = new java.text.SimpleDateFormat(timestampFormat)
 	
-	def build(data:AnyRef, view:TemplatedView):Option[Elem] =
+	def build(data:AnyRef, view:TemplatedView):Elem = //Option[Elem] =
 	{
 		// FIXME: implement custom view using a template engine such as scalate
 		throw new Exception("not implmented")
 	}
 		
-	def build(data:Iterable[AnyRef], nodeName:String):Option[Elem] =
+	def build(data:Iterable[AnyRef], nodeName:String):Elem = //Option[Elem] =
 	{
 		// TODO: this should not be used with model objects need to validate it here		
-		objectToXml(data, nodeName, None)
+		objectToXml(data, Some(nodeName), None)
 	}
 
-	def build(entity:Model, viewName:Option[String]):Option[Elem] = 
+	def build(entity:Model, viewName:Option[String]):Elem = //Option[Elem] = 
 	{		
-		modelToXml(entity, None, viewName)
+		objectToXml(entity, None, viewName)
 	}
 	
-	def build(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Option[Elem] = 
+	def build(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Elem = //Option[Elem] = 
 	{		
-		objectToXml(entities, nodeName.getOrElse("list"), viewName)
+		objectToXml(entities, Some(nodeName.getOrElse("list")), viewName)
 	}
 	
-	private def objectToXml(data:Any, nodeName:String, viewName:Option[String]):Option[Elem] =
+	private def objectToXml(data:Any, nodeName1:Option[String], viewName:Option[String]):Elem = //Option[Elem] =
 	{
 		//val nodeName:String = StringHelpers.snakify(rootNodeName)
 		//info("processing " + nodeName + " value: " + value)
-		 
+		val nodeName = nodeName1.getOrElse(StringHelpers.snakify(data.getClass.getSimpleName))
+		
 		data match
 		{
-			case null => Some(Elem(null, nodeName, Null, TopScope))
-			case model:Model => modelToXml(model, Some(nodeName), viewName)
-			case option:Option[_] => objectToXml(option.getOrElse(null), nodeName, viewName)
+			case null => /*Some(*/Elem(null, nodeName, Null, TopScope)//)
+			case option:Option[_] => objectToXml(option.getOrElse(null), Some(nodeName), viewName)
+			case model:Model => modelToXml(model, nodeName, viewName)			
+			case tuple:Tuple2[String, Any] => tupleToXml(tuple, nodeName, viewName)
+			case tuple:Tuple3[String, Any, Any] => tupleToXml(tuple, nodeName, viewName)
+			case timestamp:Timestamp => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTimestamp(timestamp)))//)
+			case date:Date => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatDate(date)))//) 
 			case iterable:Iterable[_] => 
 			{
 				//info("seq of " + seq.size)
@@ -63,50 +68,65 @@ protected object ViewBuilder
 					val child = iterator match
 					{
 						// FIXME: find a nicer way to do this
-						/*
-						case null => None
-						case value:String if value.isEmpty => None
-						case value:String => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
-						case value:Boolean => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
-						case value:Integer => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
-						case value:Long => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
-						case value:Short => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
-						case value:Double => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
-						case value:Float => primitiveArrayItemToXml(value.asInstanceOf[AnyRef])
+						//case model:Model => modelToXml(model, None, viewName)
 						case value:Timestamp => timestampArrayItemToXml(value)
 						case value:Date => dateArrayItemToXml(value)
-						*/
-						case model:Model => modelToXml(model, None, viewName)
-						case value:Timestamp => timestampArrayItemToXml(value)
-						case value:Date => dateArrayItemToXml(value)
-						case value:Any if (value.getClass.isPrimitive) => primitiveArrayItemToXml(value)						
-						case _ => objectToXml(iterator, nodeName, viewName)
-						
+						case value:Any if isSimple(value) => simpleArrayItemToXml(value)						
+						case _ => objectToXml(iterator, None, viewName)					
 					}
-					if (child.isDefined) children += child.get
+					/*(if (child.isDefined)*/ children += child //.get
 				})
-				Some(Elem(null, nodeName, new UnprefixedAttribute("array", Text("true"), Null), TopScope, children:_*))
+				/*Some(*/Elem(null, nodeName, new UnprefixedAttribute("array", Text("true"), Null), TopScope, children:_*)//)
 			}
-			case timestamp:Timestamp => Some(Elem(null, nodeName, Null, TopScope, Text(formatTimestamp(timestamp))))
-			case date:Date => Some(Elem(null, nodeName, Null, TopScope, Text(formatDate(date))))			
-			case generic:Any => Some(Elem(null, nodeName, Null, TopScope, Text(generic.toString)))
+			case generic:Any => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(generic.toString))//)
 		}
 	}
 	
-	private def primitiveArrayItemToXml(value:Any) = arrayItemToXml(value.toString)
+	private def isSimple(value:Any):Boolean = 
+	{		
+		if (value.getClass.isPrimitive) return true;
+		value match
+		{
+			case v:String => true
+			case v:Boolean => true
+			case v:Integer => true
+			case v:Short => true
+			case v:Long => true
+			case v:Float => true
+			case v:Double => true			
+			case _ => false
+		}		
+	}
 	
-	private def timestampArrayItemToXml(timestamp:Timestamp) = arrayItemToXml(formatTimestamp(timestamp))
-	private def dateArrayItemToXml(date:Date) = arrayItemToXml(formatDate(date))
+	private def simpleArrayItemToXml(value:Any) = stringArrayItemToXml(value.toString)
 	
-	private def arrayItemToXml(text:String) = Some(Elem(null, "value", new UnprefixedAttribute("arrayitem", Text("true"), Null), TopScope, Text(text)))
+	private def timestampArrayItemToXml(timestamp:Timestamp) = stringArrayItemToXml(formatTimestamp(timestamp))
+	private def dateArrayItemToXml(date:Date) = stringArrayItemToXml(formatDate(date))
+	
+	private def stringArrayItemToXml(text:String) = arrayItemToXml(Text(text)) /*Some(Elem(null, "value", new UnprefixedAttribute("arrayitem", Text("true"), Null), TopScope, Text(text)))*/
+	
+	private def arrayItemToXml(child:Node) = /*Some(*/Elem(null, "value", new UnprefixedAttribute("arrayitem", Text("true"), Null), TopScope, child)//)
 	
 	private def formatTimestamp(timestamp:Timestamp):String = if (null != timestamp) timestampFormatter.format(timestamp) else ""
 	private def formatDate(date:Date):String = if (null != date) dateFormatter.format(date) else ""
 	
-	private def modelToXml(model:Model, nodeName1:Option[String], viewName:Option[String]):Option[Elem] =
+	private def tupleToXml(tuple:Product, nodeName:String, viewName:Option[String]):Elem =
+	{
+		var children = mutable.ListBuffer[Node]()
+		children += Elem(null, "key", Null, TopScope, Text(tuple.productElement(0).toString))
+		for (index <- 1 until tuple.productArity)
+		{
+			val productElement = tuple.productElement(index)
+			val grandChild = if (isSimple(productElement)) Text(productElement.toString) else objectToXml(productElement, None, viewName)
+			children += Elem(null, "value%s".format(if(index > 1) index else ""), Null, TopScope, grandChild)			
+		}
+		/*Some(*/Elem(null, nodeName, Null, TopScope, children:_*)//)
+	}
+		
+	private def modelToXml(model:Model, nodeName:String, viewName:Option[String]):Elem = //Option[Elem] =
 	{		
 		val modelName = StringHelpers.snakify(model.getClass.getSimpleName)
-		val nodeName = nodeName1.getOrElse(modelName)
+		//val nodeName = nodeName1.getOrElse(modelName)
 		val directoryName = StringHelpers.pluralify(modelName)	
 		
 		val view = viewName match 
@@ -132,24 +152,30 @@ protected object ViewBuilder
 						// this means the view's definition will be more robust then a simple list of fields
 						val childView = None 
 							
-						try
+						val value = try
 						{								
-							var value = method.invoke(model)
-							objectToXml(value, StringHelpers.snakify(method.getName), childView) match
-							{
-								case Some(child) => children += child
-								case _ => // do nothing
-							}
+							method.invoke(model)							 							
 						}
 						catch
 						{
-							case e => throw new ViewException("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)) )
+							case e => 
+							{
+								//throw new ViewException("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)) )
+								error("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)))
+								//"error evaluating attribute: %s".format(ExceptionUtil.describe(e))
+							}
 						}
-						//}
+						children += objectToXml(value, Some(StringHelpers.snakify(method.getName)), childView)
+						/*
+						objectToXml(value, StringHelpers.snakify(method.getName), childView) match
+						{
+							case Some(child) => children += child
+							case _ => // do nothing
+						}
+						*/						
 					})
-					Some(Elem(null, nodeName, Null, TopScope, children:_*))
-			}
-			//case None => objectToXml(data, nodeName, Some(new BlackListView()))						
+					/*Some(*/Elem(null, nodeName, Null, TopScope, children:_*)//)
+			}						
 			case _ => throw new ViewException("unknown view type " + view)
 		}	
 	}

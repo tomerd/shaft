@@ -90,33 +90,33 @@ trait Logger
 		v
 	}
   
-  	def trace(msg: => AnyRef) = if (isTraceEnabled) logger.trace(String.valueOf(msg))
-  	def trace(msg: => AnyRef, t: Throwable) = if (isTraceEnabled) logger.trace(String.valueOf(msg), t)
-  	def trace(msg: => AnyRef, marker:  Marker) = if (isTraceEnabled) logger.trace(marker,String.valueOf(msg))
-  	def trace(msg: => AnyRef, t: Throwable, marker: => Marker) = if (isTraceEnabled) logger.trace(marker,String.valueOf(msg), t)
+  	def trace(msg: => AnyRef):String = { if (isTraceEnabled) logger.trace(String.valueOf(msg)); String.valueOf(msg) }
+  	def trace(msg: => AnyRef, t: Throwable):String = { if (isTraceEnabled) logger.trace(String.valueOf(msg), t); String.valueOf(msg) }
+  	def trace(msg: => AnyRef, marker:  Marker):String = { if (isTraceEnabled) logger.trace(marker,String.valueOf(msg)); String.valueOf(msg) }
+  	def trace(msg: => AnyRef, t: Throwable, marker: => Marker):String = { if (isTraceEnabled) logger.trace(marker,String.valueOf(msg), t); String.valueOf(msg) }
   	def isTraceEnabled = logger.isTraceEnabled
   
-  	def debug(msg: => AnyRef) = if (isDebugEnabled) logger.debug(String.valueOf(msg))
-  	def debug(msg: => AnyRef, t:  Throwable) = if (isDebugEnabled) logger.debug(String.valueOf(msg), t)
-  	def debug(msg: => AnyRef, marker: Marker) = if (isDebugEnabled) logger.debug(marker, String.valueOf(msg))
-  	def debug(msg: => AnyRef, t: Throwable, marker: Marker) = if (isDebugEnabled) logger.debug(marker, String.valueOf(msg), t)
+  	def debug(msg: => AnyRef):String = { if (isDebugEnabled) logger.debug(String.valueOf(msg)); String.valueOf(msg) }
+  	def debug(msg: => AnyRef, t:  Throwable):String = { if (isDebugEnabled) logger.debug(String.valueOf(msg), t); String.valueOf(msg) }
+  	def debug(msg: => AnyRef, marker: Marker):String = { if (isDebugEnabled) logger.debug(marker, String.valueOf(msg)); String.valueOf(msg) }
+  	def debug(msg: => AnyRef, t: Throwable, marker: Marker):String = { if (isDebugEnabled) logger.debug(marker, String.valueOf(msg), t); String.valueOf(msg) }
   	def isDebugEnabled = logger.isDebugEnabled
   
-  	def info(msg: => AnyRef) = if (isInfoEnabled) logger.info(String.valueOf(msg))
-  	def info(msg: => AnyRef, t: => Throwable) = if (isInfoEnabled) logger.info(String.valueOf(msg), t)
-  	def info(msg: => AnyRef, marker: Marker) = if (isInfoEnabled) logger.info(marker,String.valueOf(msg))
-  	def info(msg: => AnyRef, t: Throwable, marker: Marker) = if (isInfoEnabled) logger.info(marker,String.valueOf(msg), t)
+  	def info(msg: => AnyRef):String = { if (isInfoEnabled) logger.info(String.valueOf(msg)); String.valueOf(msg) }
+  	def info(msg: => AnyRef, t: => Throwable):String = { if (isInfoEnabled) logger.info(String.valueOf(msg), t); String.valueOf(msg) }
+  	def info(msg: => AnyRef, marker: Marker):String = { if (isInfoEnabled) logger.info(marker,String.valueOf(msg)); String.valueOf(msg) }
+  	def info(msg: => AnyRef, t: Throwable, marker: Marker):String = { if (isInfoEnabled) logger.info(marker,String.valueOf(msg), t); String.valueOf(msg) }
   	def isInfoEnabled = logger.isInfoEnabled
   
-  	def warn(msg: => AnyRef) = if (isWarnEnabled) logger.warn(String.valueOf(msg))
-  	def warn(msg: => AnyRef, t: Throwable) = if (isWarnEnabled) logger.warn(String.valueOf(msg), t)
-  	def warn(msg: => AnyRef, marker: Marker) = if (isWarnEnabled) logger.warn(marker,String.valueOf(msg))
-  	def warn(msg: => AnyRef, t: Throwable, marker: Marker) = if (isWarnEnabled) logger.warn(marker,String.valueOf(msg), t)
+  	def warn(msg: => AnyRef):String = { if (isWarnEnabled) logger.warn(String.valueOf(msg)); String.valueOf(msg) }
+  	def warn(msg: => AnyRef, t: Throwable):String = { if (isWarnEnabled) logger.warn(String.valueOf(msg), t); String.valueOf(msg) }
+  	def warn(msg: => AnyRef, marker: Marker):String = { if (isWarnEnabled) logger.warn(marker,String.valueOf(msg)); String.valueOf(msg) }
+  	def warn(msg: => AnyRef, t: Throwable, marker: Marker):String = { if (isWarnEnabled) logger.warn(marker,String.valueOf(msg), t); String.valueOf(msg) }
   	def isWarnEnabled = logger.isWarnEnabled
   
-  	def error(msg: => AnyRef) = if (isErrorEnabled) logger.error(String.valueOf(msg))
-  	def error(msg: => AnyRef, t: Throwable) = if (isErrorEnabled) logger.error(String.valueOf(msg), t)
-  	def error(msg: => AnyRef, marker: Marker) = if (isErrorEnabled) logger.error(marker,String.valueOf(msg))
-  	def error(msg: => AnyRef, t: Throwable, marker: Marker) = if (isErrorEnabled) logger.error(marker,String.valueOf(msg), t)
+  	def error(msg: => AnyRef):String = { if (isErrorEnabled) logger.error(String.valueOf(msg)); String.valueOf(msg) }
+  	def error(msg: => AnyRef, t: Throwable):String = { if (isErrorEnabled) logger.error(String.valueOf(msg), t); String.valueOf(msg) }
+  	def error(msg: => AnyRef, marker: Marker):String = { if (isErrorEnabled) logger.error(marker,String.valueOf(msg)); String.valueOf(msg) }
+  	def error(msg: => AnyRef, t: Throwable, marker: Marker):String = { if (isErrorEnabled) logger.error(marker,String.valueOf(msg), t); String.valueOf(msg) }
   	def isErrorEnabled = logger.isErrorEnabled	
 }

@@ -73,8 +73,6 @@ class ShaftWebService extends ShaftService with WebService
 	        context.setHandler(handler)
 	        handlers.addHandler(context)
 			
-			
-			
 	        server.start
 	        			
 	        onstartCallbacks.foreach( _() )

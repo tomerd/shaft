@@ -24,11 +24,11 @@ protected trait Controller
 	protected final def inTransaction[A](a: => A):A = transactionManager.inTransaction(a)
 	
 	// views	
-	def buildView(data:AnyRef, view:TemplatedView):Response = ViewBuilder.build(data, view)
-	def buildView(data:Iterable[AnyRef], nodeName:String):Response = ViewBuilder.build(data, nodeName)
-	def buildView(entity:Model, viewName:Option[String]):Response = ViewBuilder.build(entity, viewName)	
+	def buildView(data:AnyRef, view:TemplatedView):Response = XmlResponse(ViewBuilder.build(data, view))
+	def buildView(data:Iterable[AnyRef], nodeName:String):Response = XmlResponse(ViewBuilder.build(data, nodeName))
+	def buildView(entity:Model, viewName:Option[String]):Response = XmlResponse(ViewBuilder.build(entity, viewName))	
 	def buildView(entities:Iterable[_ <: Model], viewName:Option[String]):Response = buildView(entities, None, viewName)
-	def buildView(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Response = ViewBuilder.build(entities, nodeName, viewName) 
+	def buildView(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Response = XmlResponse(ViewBuilder.build(entities, nodeName, viewName)) 
 	
 	private implicit def optxml2response(optxml:Option[Elem]):Response =
 	{
