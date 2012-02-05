@@ -128,7 +128,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		
 	  		val files = multiPartForm.files 
   			
-  			val view = path.indexOf(":") match
+  			val view = path.indexOf("#") match
   			{  				
   			  	case index if index > 0 && index < path.length => 
   			  	{

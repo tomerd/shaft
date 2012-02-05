@@ -42,17 +42,17 @@ protected object RestRoutes
 		routes += "GET:%s".format(service) -> FullRoute(controller, "list")
 		routes += "GET:%s/:id".format(service) -> FullRoute(controller, "show", Some(":id"))
 		routes += "GET:%s/:id/:api".format(service) -> FullRoute(controller, ":api", Some(":id"))
-		// FIXME routes for testing
-		routes += "GET:%s/create".format(service) -> FullRoute(controller, "create")
-		routes += "POST:%s/create".format(service) -> FullRoute(controller, "create")
-		routes += "GET:%s/update/:id".format(service) -> FullRoute(controller, "update")
-		routes += "POST:%s/update/:id".format(service) -> FullRoute(controller, "update")
-		routes += "GET:%s/destroy/:id".format(service) -> FullRoute(controller, "destroy")
-		// ~ FIXME routes for testing
 		routes += "POST:%s".format(service) -> FullRoute(controller, "create")		
 		routes += "POST:%s/:id/:api".format(service) -> FullRoute(controller, ":api", Some(":id"))
 		routes += "PUT:%s/:id".format(service) -> FullRoute(controller, "update", Some(":id"))
 		routes += "DELETE:%s/:id".format(service) -> FullRoute(controller, "destroy", Some(":id"))
+		// none traditional routes
+		routes += "GET:%s/create".format(service) -> FullRoute(controller, "create")
+		routes += "POST:%s/create".format(service) -> FullRoute(controller, "create")
+		routes += "GET:%s/:id/update".format(service) -> FullRoute(controller, "update")
+		routes += "POST:%s/:id/update".format(service) -> FullRoute(controller, "update")
+		routes += "GET:%s/:id/destroy".format(service) -> FullRoute(controller, "destroy")
+		// ~ none traditional routes		
 		routes
 	}
 	
