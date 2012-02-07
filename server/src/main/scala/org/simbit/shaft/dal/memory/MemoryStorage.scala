@@ -20,6 +20,8 @@ protected abstract class MemoryStorage[T <: KeyedModel[T]] extends Storage[T]
 		
 	def findAll():Iterable[T] = store.values
 			
+	// as this is an in-memory representation, we need to create IDs by code
+	// naturally, this is not scalabale nor thread safe
 	def create(entity:T):T = 
 	{ 
 		entity.id = store.size + 1

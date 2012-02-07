@@ -49,9 +49,9 @@ protected object RestRoutes
 		// none traditional routes
 		routes += "GET:%s/create".format(service) -> FullRoute(controller, "create")
 		routes += "POST:%s/create".format(service) -> FullRoute(controller, "create")
-		routes += "GET:%s/:id/update".format(service) -> FullRoute(controller, "update")
-		routes += "POST:%s/:id/update".format(service) -> FullRoute(controller, "update")
-		routes += "GET:%s/:id/destroy".format(service) -> FullRoute(controller, "destroy")
+		//routes += "GET:%s/:id/update".format(service) -> FullRoute(controller, "update")
+		//routes += "POST:%s/:id/update".format(service) -> FullRoute(controller, "update")
+		//routes += "GET:%s/:id/destroy".format(service) -> FullRoute(controller, "destroy")
 		// ~ none traditional routes		
 		routes
 	}

@@ -127,17 +127,6 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		val params = new RestRequestParams(request.getParameterMap.map{ case (key:String,value:Array[String]) => key -> value.reduceLeft(_ + "," + _) }.toMap[String, String] ++ multiPartForm.params)
 	  		
 	  		val files = multiPartForm.files 
-  			
-  			val view = path.indexOf("#") match
-  			{  				
-  			  	case index if index > 0 && index < path.length => 
-  			  	{
-  			  		val view = path.substring(index+1).toLowerCase()
-  			  		path = path.substring(0, index)
-  			  		Some(view)	
-  			  	}
-  			  	case _ => None
-  			}
   									
   			val contentType = path.indexOf(".") match
   			{
@@ -149,10 +138,21 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
   			  		{
   			  		  	case "xml" => ContentType.Xml
   			  		  	case "json" => ContentType.Json
-  			  		  	case _ => ContentType.Json
+  			  		  	case _ => throw new BadRequestException("unknown content type " + ext)
   			  		}  			  		
   			  	}
-  			  	case _ => ContentType.Json
+  			  	case _ => ContentType.Xml
+  			}
+	  		
+	  		val view = path.indexOf("~") match
+  			{  				
+  			  	case index if index > 0 && index < path.length => 
+  			  	{
+  			  		val view = path.substring(index+1).toLowerCase()
+  			  		path = path.substring(0, index)
+  			  		Some(view)	
+  			  	}
+  			  	case _ => None
   			}
 	  		
 	  		if (path.startsWith("/")) path = path.substring(1)
