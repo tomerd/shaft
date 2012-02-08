@@ -7,21 +7,72 @@ import java.util.UUID
 import scala.collection._
 
 import app.controllers.common.Session
-import app.controllers.common.SessionImpl
 
 private object SessionManager
 {
-	private val map = mutable.HashMap[String, Session]()
+	private val map = mutable.HashMap[String, SessionImpl]()
 
-	def get(token:String):Option[Session] = map.get(token)
+	def get(token:String):Option[SessionImpl] = map.get(token)
 		
-	def add(session:Session):Unit = map += session.token -> session
+	def add(session:SessionImpl):Unit = map += session.token -> session
 	
-	def replace(oldToken:String, session:Session):Unit = 
+	def replace(oldToken:String, session:SessionImpl):Unit = 
 	{
 		 map -= oldToken
 		 this.add(session)
 	}
+}
+
+private class SessionImpl(sessionToken:String, expiresOn:Date) extends Session
+{	
+	private var _token = sessionToken
+	private var _expires = expiresOn
+	private val map = mutable.HashMap[String, AnyRef]()
+	private var updateListeners = mutable.ListBuffer[() => Unit]()	
+	
+	def token = _token
+	def expires = _expires
+	
+	def set[T <: AnyRef](key:String, value:T):T = { map += key -> value; value }
+	def get(key:String):Option[AnyRef] = map.get(key)
+	def remove(key:String) = map -= key
+	def clear() = map.clear
+	
+	/*
+	def copy(token:String, expires:Date):Session = 
+	{
+		val copy = new Session(token, expires)
+		copy.map ++ this.map
+		copy
+	}
+	*/
+	
+	def update(sessionToken:String, expiresOn:Date):SessionImpl =
+	{
+		_token = sessionToken;
+		_expires = expiresOn;
+		/*
+		updateListeners.foreach ( listener =>
+		{
+			try
+			{
+				listener()
+			}
+			catch
+			{
+				case e => // do nothing
+			}
+		})		
+		*/
+		this
+	}
+	
+	/*
+	def addUpdateHandler(handler:() => Unit)
+	{
+		updateListeners += handler
+	}
+	*/	
 }
 
 protected trait SessionAccesor
@@ -29,8 +80,7 @@ protected trait SessionAccesor
 	// TODO: read session timeout this from the config file
 	private val SESSSION_TIMEOUT = 30 //M
 	private val TOKEN_TTL = 1 //M
-	
-	
+		
 	def currentSession:Session =
 	{		
 		this.getSessionToken() match
@@ -56,11 +106,11 @@ protected trait SessionAccesor
 		}
 	}
 	
-	private def newSession(oldToken:Option[String]=None, oldSession:Option[Session]=None):Session = 
+	private def newSession(oldToken:Option[String]=None, oldSession:Option[SessionImpl]=None):SessionImpl = 
 	{
 		val newToken = UUID.randomUUID.toString
 		val expires = new Date(System.currentTimeMillis + SESSSION_TIMEOUT*60*1000)
-		val session = if (oldSession.isDefined) oldSession.get.asInstanceOf[SessionImpl].update(newToken, expires) else new SessionImpl(newToken, expires)
+		val session = if (oldSession.isDefined) oldSession.get.update(newToken, expires) else new SessionImpl(newToken, expires)
 		if (oldToken.isDefined) SessionManager.replace(oldToken.get, session) else SessionManager.add(session)
 		setSessionToken(newToken, expires)
 		session

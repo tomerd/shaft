@@ -7,6 +7,7 @@ import scala.collection._
 import org.eclipse.jetty.server.{Server, Connector, Handler}
 import org.eclipse.jetty.server.nio.SelectChannelConnector
 import org.eclipse.jetty.server.handler.{ ContextHandler, HandlerList, ResourceHandler, DefaultHandler }
+import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 
@@ -40,11 +41,22 @@ class ShaftWebService extends ShaftService with WebService
 		try
 		{
 			server = new Server()
-	
+
 	        val connector = new SelectChannelConnector()	        
 	        connector.setHost(config.host)
 	        connector.setPort(config.port)
 	        server.addConnector(connector)
+	        
+	        val keystoreFileUrl = ShaftServer.server.getClass.getClassLoader.getResource("web/%s".format(config.keystoreFile))
+	        if (null == keystoreFileUrl) throw new Exception ("webapp keystore file not found. expected at web/%s".format(config.keystoreFile))
+	        val sslConnector = new SslSelectChannelConnector()
+			sslConnector.setHost(config.host)
+			sslConnector.setPort(config.sslPort)
+			sslConnector.setKeystore(keystoreFileUrl.getFile)
+			sslConnector.setKeystoreType("PKCS12")
+			sslConnector.setKeyPassword(config.keystorePassword)
+			sslConnector.setPassword(config.keystorePassword)
+			server.addConnector(sslConnector)
 				        
 	        val handlers = new HandlerList()
 			server.setHandler(handlers)

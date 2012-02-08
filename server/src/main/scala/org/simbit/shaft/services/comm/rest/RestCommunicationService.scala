@@ -33,9 +33,11 @@ trait RestCommunicationService extends CommunicationService
 		
 class ShaftRestCommunicationService extends ShaftCommunicationService with RestCommunicationService
 {
-	@Inject var config:RestConfig = null
+	@Inject var config:RestConfig = null	
 	@Inject var storageService:StorageService = null
+	
 	@Inject var webService:WebService = null
+	@Inject var webConfig:WebConfig = null
 	
 	//val routes = config.routes
 	lazy val routes = RestRoutes(Routes.all)
@@ -93,7 +95,13 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  				case Some(request) => request
 	  				case None => throw new UnknownRequestException("%s:%s".format(request.getMethod, request.getPathInfo))
 	  			}
-	  				  			
+	  			
+	  			// TODO: move out of here...general web server function
+	  			//response.setHeader("Access-Control-Allow-Origin", "http://%s:%d, https://%s:%d".format(request.getServerName(), webConfig.port, request.getServerName(), webConfig.sslPort))
+	  			val allowed = List("http://%s:%d".format(request.getServerName(), webConfig.port), "https://%s:%d".format(request.getServerName(), webConfig.sslPort))
+	  			val origin = request.getHeader("origin")
+	  			if (allowed.contains(origin)) response.setHeader("Access-Control-Allow-Origin", origin)
+	  				  				  			
 	  			val result = invokeApi(restRequest, sessionAccessor.currentSession)	  			 
 		  		response.setContentType(restRequest.contentType match
 		  		{
@@ -157,7 +165,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		
 	  		if (path.startsWith("/")) path = path.substring(1)
 	  		val parts = path.split("/")
-	  		routes.get(request.getMethod + ":" + path) match
+	  		routes.get("%s:%s".format(request.getMethod, path)) match
 	  		{
 	  			case Some(route:FullRoute) => Some(RestRequest(secured, contentType, parts(0), route, None, view, params, files, serverName))
 	  			case None =>
@@ -251,7 +259,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		{
 		  		val methodName:String = StringHelpers.camelifyMethod(request.route.api)
 		  		
-		  		debug("processing API " + request.service + ":" + request.route.api + " as " + request.route.controller.getSimpleName + ":" + methodName)
+		  		debug("processing API %s:%s as %s:%s".format(request.service, request.route.api, request.route.controller.getSimpleName, methodName))
 		  				  			  		
 		  		// TODO: support custom method annotations (alias, permissions, access, etc)
 		  		val method = request.route.controller.getMethods.find(methodName == _.getName) match
@@ -259,26 +267,6 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 		  		  	case Some(method) => method
 		  		  	case _ => throw new BadRequestException("unknown API %s:%s".format(request.service, request.route.api))
 		  		}
-		  		
-		  		//val metadata = method.getAnnotation(classOf[API])
-		  		//if (null == metadata) throw new BadRequestException("API %s:%s found, but metadaa (annotation is missing)".format(request.service, request.route.api))
-		  		
-		  		// TODO: consider moving out of here
-		  		// check access rights and permissions		  		
-		  		//if (metadata.sslRequired && !request.secured) throw new PermissionDeniedException("%s:%s must be accessed securly".format(request.service, request.route.api))
-		  		/*
-		  		val auth = authenticationContextManager.getContext()		  		
-		  		auth.user match
-		  		{
-		  			case Some(user) => 
-		  			{
-		  				if (!user.active) throw new UserInactiveException()
-		  				// TODO: add permissions test
-		  			}
-		  			// FIXME: commented out for testing
-		  			case None => if (metadata.loginRequired) info("not enforcing login!!! debug mode only") // throw new LoginRequiredException() 
-		  		} 
-		  		*/
 		  		
 		  		// create instance (stateless)
 		  		val controller = try
@@ -307,13 +295,17 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 						binder.bind(classOf[Request]).toInstance(new Request
 						{ 
 							val serverName = request.serverName
+							val secured = request.secured
 							val params = request.params							
 						})
 					} 
 				}, 
 				// inject data services
 				if (storageService.store.isDefined) storageService.store.get.servicesInjectionModule else null).injectMembers(controller)
-						  		
+						  	
+				// run filters
+		  		if (!controller.skipBeforeFilter.contains(methodName)) controller.beforeFilter(methodName)
+		  		
 		  		// invoke API
 		  		val result = try
 		  		{		  			
@@ -349,9 +341,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		catch
 			{
 	  		  	case e:BadRequestException => throw e
-	  		  	case e:BadImplementationException => throw e
-				//case e:LoginRequiredException => LoginRequired()
-				//case e:UserInactiveException => UserInactive()				
+	  		  	case e:BadImplementationException => throw e				
 				case e:AccessDeniedException => AccessDenied()
 				case e:PermissionDeniedException => PermissionDenied(e.reason)
 				case e:ApiException => Failed(e.description)
@@ -359,7 +349,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 				case e:NotFoundException => NotFound(e.reason)
 				case t:Throwable => 
 				{
-					val response = Failed("failed invoking API " + request.service + ":" + request.route.api + ", " + ExceptionUtil.describe(t))
+					val response = Failed("failed invoking API %s:%s, %s".format(request.service, request.route.api, ExceptionUtil.describe(t)))
 					error(response)
 					response
 				}
@@ -426,11 +416,6 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  	}
 	}
 }
-
-
-
-
-
 
 private class BadImplementationException(description:String, cause:Throwable=null) extends Throwable(description, cause)
 private class BadRequestException(description:String) extends Throwable(description)

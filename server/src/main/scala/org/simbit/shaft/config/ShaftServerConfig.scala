@@ -44,18 +44,21 @@ case class RdbmsConfig(driver:String, url:String, user:String, password:String) 
 }
 
 
-case class WebConfig(host:String, port:Int, path:String) 
+case class WebConfig(path:String, host:String, port:Int, sslPort:Int, keystoreFile:String, keystorePassword:String) 
 {
-	override def toString() = ("host=%s, port=%s, path=%s").format(host, port,  path)
+	override def toString() = ("path=%s, host=%s, port=%s, sslPort=%s, keystoreFile=%s").format(path, host, port, sslPort, keystoreFile)
 }
 
 class WebConfigBuilder extends Config[WebConfig]
 {
+	var path:String = "/"
 	var host:String = "127.0.0.1"
 	var port:Int = 8080
-	var path:String = "/"
+	var sslPort:Int = 8443
+	var keystoreFile = "shaft.pkcs12"
+	var keystorePassword = "shaft"
 
-	def apply() = WebConfig(host, port, path)
+	def apply() = WebConfig(path, host, port, sslPort, keystoreFile, keystorePassword)
 }
 
 /*
