@@ -25,12 +25,14 @@ private object SessionManager
 
 private class SessionImpl(sessionToken:String, expiresOn:Date) extends Session
 {	
+	private var _oldTokens = mutable.ListBuffer[String]()
 	private var _token = sessionToken
 	private var _expires = expiresOn
 	private val map = mutable.HashMap[String, AnyRef]()
 	private var updateListeners = mutable.ListBuffer[() => Unit]()	
 	
 	def token = _token
+	def oldTokens = _oldTokens
 	def expires = _expires
 	
 	def set[T <: AnyRef](key:String, value:T):T = { map += key -> value; value }
@@ -49,8 +51,10 @@ private class SessionImpl(sessionToken:String, expiresOn:Date) extends Session
 	
 	def update(sessionToken:String, expiresOn:Date):SessionImpl =
 	{
+		_oldTokens += _token
 		_token = sessionToken;
 		_expires = expiresOn;
+		
 		/*
 		updateListeners.foreach ( listener =>
 		{
@@ -96,8 +100,7 @@ protected trait SessionAccesor
 						// conetxt.user should be undefined, but to be on safe side...
 						if (now > session.expires.getTime) throw new Exception("session timed out, but %s did not expire it correctly".format(this))
 						// set new token if needed				
-						if (now - (session.expires.getTime - SESSSION_TIMEOUT*60*1000) > TOKEN_TTL*60*1000) newSession(Some(token), Some(session))
-						session
+						if (now - (session.expires.getTime - SESSSION_TIMEOUT*60*1000) > TOKEN_TTL*60*1000) newSession(Some(token), Some(session)) else session
 					}
 					case None => newSession()
 				}
@@ -160,7 +163,7 @@ private class ServeletHttpServerProxy(currentRequest:HttpServletRequest, current
 	
 	def getCookie(name:String):Option[String] =
 	{
-		currentRequest.getCookies.find( _.getName == name) match
+		currentRequest.getCookies.find( _.getName.indexOf(name) >= 0 ) match
 		{
 			case Some(cookie) => Some(cookie.getValue)
 			case _ => None
@@ -168,7 +171,7 @@ private class ServeletHttpServerProxy(currentRequest:HttpServletRequest, current
 	}
 	
 	def setCookie(name:String, value:String, maxAge:Option[Int])
-	{
+	{		
 		val cookie = new Cookie(name, value)
 		cookie.setPath(currentRequest.getContextPath)
 		if (maxAge.isDefined) cookie.setMaxAge(maxAge.get)
