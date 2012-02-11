@@ -4,17 +4,30 @@ package web
 
 import scala.collection._
 
+import javax.servlet.Filter
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.FilterChain
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import javax.servlet.FilterConfig
+
 import org.eclipse.jetty.server.{Server, Connector, Handler}
 import org.eclipse.jetty.server.nio.SelectChannelConnector
 import org.eclipse.jetty.server.handler.{ ContextHandler, HandlerList, ResourceHandler, DefaultHandler }
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.servlet.FilterMapping
+import org.eclipse.jetty.servlet.FilterHolder
 
 import com.google.inject.Inject
 
 import services._
 import config._
+
+
+
 
 trait WebService extends Service
 {
@@ -61,8 +74,17 @@ class ShaftWebService extends ShaftService with WebService
 	        val handlers = new HandlerList()
 			server.setHandler(handlers)
 			
-			additioalHandlers.foreach { handlers.addHandler(_) }
-			
+			additioalHandlers.foreach ( handler => 
+			{ 
+				handler match
+				{
+					// overcome http/https cross domain issues
+					case servelt:ServletContextHandler => servelt.addFilter(new FilterHolder(new CrossDomainFilter), "/*", FilterMapping.REQUEST);
+					case _ => // do nothing
+				}				
+	        	handlers.addHandler(handler) 
+	        })
+				        
 			//val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
 			//context.setContextPath(config.path + "/scripts/element")		
 			//context.addServlet(new ServletHolder(new ConfigurationServlet()), "/*")
@@ -71,25 +93,25 @@ class ShaftWebService extends ShaftService with WebService
 			val context = new ContextHandler()
 			context.setContextPath(config.path)
 			
+			// static resources
 			val handler = new HandlerList()
 			val url = ShaftServer.server.getClass.getClassLoader.getResource("web/public")			
 			if (null == url) throw new Exception("webapp directory not found. expected at web/public")
 			val resourceHandler = new ResourceHandler()			
 	        resourceHandler.setDirectoriesListed(false)
 	        resourceHandler.setWelcomeFiles(Array("index.htm", "index.html"))	 
-	        resourceHandler.setResourceBase(url.toExternalForm)
-	        //web.registerHandler(resourceHandler)			    
-	        //web.registerHandler(new DefaultHandler())	
+	        resourceHandler.setResourceBase(url.toExternalForm)	
 	        handler.addHandler(resourceHandler)
 	        handler.addHandler(new DefaultHandler())
 	        context.setHandler(handler)
+	        	        
 	        handlers.addHandler(context)
-			
+	        
 	        server.start
 	        			
 	        onstartCallbacks.foreach( _() )
 	        
-	        info("embedded web server is started. listening on %s:%s".format(config.host, config.port))
+	        info("embedded web server is started. listening on %s:%d, %s:%d".format(config.host, config.port, config.host, config.sslPort))
 		}
 		catch
 		{
@@ -127,8 +149,48 @@ class ShaftWebService extends ShaftService with WebService
 	{
 		onstartCallbacks += callback
 	}
+	
+	private class CrossDomainFilter extends Filter
+	{
+		def init(filterConfig:FilterConfig)
+		{			
+		}
+				
+		def doFilter (request:ServletRequest, response:ServletResponse, chain:FilterChain) 
+		{
+			request match 
+			{
+				case request:HttpServletRequest =>
+				{
+					response match 
+					{
+						case response:HttpServletResponse =>
+						{
+							val allowed = List("http://%s:%d".format(request.getServerName(), config.port), "https://%s:%d".format(request.getServerName(), config.sslPort))
+							val origin = request.getHeader("origin")
+							if (allowed.contains(origin)) 
+							{
+								response.setHeader("Access-Control-Allow-Origin", origin)
+								response.setHeader("Access-Control-Allow-Credentials", "true")	  				
+							}							
+						}
+						case _ => // do nothing	
+					}					
+				}
+				case _ => // do nothing
+			}
+			
+			chain.doFilter(request, response)
+		}
 		
+		def destroy()
+		{			
+		}
+	}
+		
+
 }
+
 
 
 
