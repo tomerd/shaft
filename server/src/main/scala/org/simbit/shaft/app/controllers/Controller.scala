@@ -1,6 +1,8 @@
 package org.simbit.shaft
 package app.controllers
 
+import java.lang.reflect.Method
+
 import scala.collection._
 import scala.xml._
 
@@ -19,7 +21,7 @@ protected trait Controller
 	@Inject var session:Session = null
 	
 	// before API filters	
-	def beforeFilter(api:String):Unit = Unit
+	def beforeFilter(api:Method):Unit = Unit
 		
 	private var _skipBeforeFilter:Seq[String] = Nil
 	def skipBeforeFilter = _skipBeforeFilter

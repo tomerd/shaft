@@ -9,6 +9,7 @@ import scala.collection._
 trait Session
 {
 	def token:String
+	def oldTokens:Iterable[String]
 	def expires:Date
 	
 	def set[T <: AnyRef](key:String, value:T):T

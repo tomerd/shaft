@@ -37,7 +37,6 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	@Inject var storageService:StorageService = null
 	
 	@Inject var webService:WebService = null
-	@Inject var webConfig:WebConfig = null
 	
 	//val routes = config.routes
 	lazy val routes = RestRoutes(Routes.all)
@@ -79,6 +78,8 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  	implicit def xmlToString(node:scala.xml.Node):String = node.toString
 	  	implicit def jsonToString(json:net.liftweb.json.JsonAST.JValue):String = net.liftweb.json.Printer.compact(net.liftweb.json.JsonAST.render(json))
 
+		val tempDirPath = ShaftServer.server.getClass.getClassLoader.getResource(".").getFile() + "/temp"
+			
 		override protected def service(request:HttpServletRequest, response:HttpServletResponse)
 		{               
 	  		try
@@ -95,12 +96,6 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  				case Some(request) => request
 	  				case None => throw new UnknownRequestException("%s:%s".format(request.getMethod, request.getPathInfo))
 	  			}
-	  			
-	  			// TODO: move out of here...general web server function
-	  			//response.setHeader("Access-Control-Allow-Origin", "http://%s:%d, https://%s:%d".format(request.getServerName(), webConfig.port, request.getServerName(), webConfig.sslPort))
-	  			val allowed = List("http://%s:%d".format(request.getServerName(), webConfig.port), "https://%s:%d".format(request.getServerName(), webConfig.sslPort))
-	  			val origin = request.getHeader("origin")
-	  			if (allowed.contains(origin)) response.setHeader("Access-Control-Allow-Origin", origin)
 	  				  				  			
 	  			val result = invokeApi(restRequest, sessionAccessor.currentSession)	  			 
 		  		response.setContentType(restRequest.contentType match
@@ -128,13 +123,13 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
   			
   			val serverName = request.getServerName
   			
-  			val secured = "https" == request.getProtocol
+  			val secured = request.isSecure
   			
   			val multiPartForm = parseMultiPartForm(request)  
   			
-	  		val params = new RestRequestParams(request.getParameterMap.map{ case (key:String,value:Array[String]) => key -> value.reduceLeft(_ + "," + _) }.toMap[String, String] ++ multiPartForm.params)
+	  		val params = request.getParameterMap.map{ case (key:String,value:Array[String]) => key -> value.reduceLeft(_ + "," + _) }.toMap[String, String] ++ multiPartForm.params
 	  		
-	  		val files = multiPartForm.files 
+	  		val uploads = multiPartForm.uploads 
   									
   			val contentType = path.indexOf(".") match
   			{
@@ -167,7 +162,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		val parts = path.split("/")
 	  		routes.get("%s:%s".format(request.getMethod, path)) match
 	  		{
-	  			case Some(route:FullRoute) => Some(RestRequest(secured, contentType, parts(0), route, None, view, params, files, serverName))
+	  			case Some(route:FullRoute) => Some(RestRequest(secured, contentType, parts(0), route, None, view, params, uploads, serverName))
 	  			case None =>
 	  			{	  				
 	  				// FIXME: find a better way to do this	 
@@ -183,7 +178,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 						{
 							val api = if (":api" == route.api) parts(2) else route.api
 							val id = if (route.id.isDefined && ":id" == route.id.get) Some(parts(1)) else None
-							Some(RestRequest(secured, contentType, parts(0), FullRoute(route.controller, api), id, view, params, files, serverName))		
+							Some(RestRequest(secured, contentType, parts(0), FullRoute(route.controller, api), id, view, params, uploads, serverName))		
 						}
 						case _ => None
 					} 				
@@ -193,12 +188,10 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  	
 	  	private def parseMultiPartForm(request:HttpServletRequest):MultiPartForm =
 	  	{
-	  		if (!ServletFileUpload.isMultipartContent(request)) return MultiPartForm(Map.empty[String, String], Nil)
+	  		if (!ServletFileUpload.isMultipartContent(request)) return MultiPartForm(Map.empty[String, String], Map.empty[String, UploadedFile])
 	  				
 	  		// TODO: use configuration settings?
-			//val maxUploadMemorySize = 1*1024*1024
-			val baseUrl = ShaftServer.server.getClass.getClassLoader.getResource(".")
-			val tempDirPath = baseUrl.getFile() + "/temp"
+			//val maxUploadMemorySize = 1*1024*1024			
 			val tempDirectory = new File(tempDirPath)
 			if (!tempDirectory.exists()) tempDirectory.mkdir();
 			val factory = new DiskFileItemFactory();
@@ -209,7 +202,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 			var iterator = items.iterator()
 			
 			val params = mutable.HashMap[String, String]()
-			val files = mutable.ListBuffer[UploadedFile]()
+			val uploads = mutable.HashMap[String, UploadedFile]()
 			while (iterator.hasNext()) 
 			{
 			    val item = iterator.next().asInstanceOf[FileItem]				
@@ -219,11 +212,11 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 			    } 
 			    else 
 			    {
-			    	files += UploadedFile(item.getFieldName, item.getName, item.getContentType, item.getSize, item.getInputStream)
+			    	uploads +=item.getFieldName -> RestUploadedFile(item.getName,item.getContentType, item.getSize, item.getInputStream)
 			    }
 			}
 			
-			MultiPartForm(params, files)
+			MultiPartForm(params, uploads)
 	  	}
 	  	
 	  	private def invokeApi(request:RestRequest, session:Session):String = 
@@ -260,9 +253,13 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 		  		val methodName:String = StringHelpers.camelifyMethod(request.route.api)
 		  		
 		  		debug("processing API %s:%s as %s:%s".format(request.service, request.route.api, request.route.controller.getSimpleName, methodName))
-		  				  			  		
-		  		// TODO: support custom method annotations (alias, permissions, access, etc)
-		  		val method = request.route.controller.getMethods.find(methodName == _.getName) match
+		  		
+		  		val method = request.route.controller.getMethods.find( method =>
+		  		{
+		  			val metadata = method.getAnnotation(classOf[annotation.API])
+		  			val name = if (null != metadata && metadata.alias.length > 0) metadata.alias else method.getName
+		  			name == methodName 
+		  		}) match
 		  		{
 		  		  	case Some(method) => method
 		  		  	case _ => throw new BadRequestException("unknown API %s:%s".format(request.service, request.route.api))
@@ -296,7 +293,9 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 						{ 
 							val serverName = request.serverName
 							val secured = request.secured
-							val params = request.params							
+							val params = request.params		
+							val uploads = request.uploads
+							val tempDir = tempDirPath 
 						})
 					} 
 				}, 
@@ -304,7 +303,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 				if (storageService.store.isDefined) storageService.store.get.servicesInjectionModule else null).injectMembers(controller)
 						  	
 				// run filters
-		  		if (!controller.skipBeforeFilter.contains(methodName)) controller.beforeFilter(methodName)
+		  		if (!controller.skipBeforeFilter.contains(methodName)) controller.beforeFilter(method)
 		  		
 		  		// invoke API
 		  		val result = try
@@ -393,14 +392,13 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  									route:FullRoute,
 	  									id:Option[String], 
 	  									view:Option[String], 
-	  									params:RequestParams,
-	  									files:Iterable[UploadedFile],
+	  									params:Map[String,String],
+	  									uploads:Map[String, UploadedFile],
 	  									serverName:String)
 	  	
-	  	private case class MultiPartForm(params:Map[String,String], files:Iterable[UploadedFile])
+	  	private case class MultiPartForm(params:Map[String, String], uploads:Map[String, UploadedFile])
 
-	  	private case class UploadedFile(fieldName:String, name:String, contentType:String, size:Long, stream:InputStream)
-	  
+	  	/*
 	  	private class RestRequestParams(map:Map[String,String]) extends RequestParams
 		{	  		
 			def get(key:String) = map.get(key)		 
@@ -408,6 +406,22 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 			def +[B >: String](kv:(String, B)) = map + (kv)
 			def - (key:String) = map - key
 		}
+		*/
+	  	
+	  	/*
+	  	private class RestUploadedFiles(map:Map[String, RestUploadedFile]) extends UploadedFiles
+	  	{
+	  		def get(key:String) = map.get(key)		 
+			def iterator = map.iterator
+			def +[B >: UploadedFile](kv:(String, B)) = map + (kv)
+			def - (key:String) = map - key
+	  	}
+	  	*/
+	  		
+	  	private case class RestUploadedFile(name:String, contentType:String, size:Long, stream:InputStream) extends UploadedFile
+	  	{
+	  		val originalFileName = ""
+	  	}
 			  	
 	  	private object ContentType extends Enumeration 
 	  	{
