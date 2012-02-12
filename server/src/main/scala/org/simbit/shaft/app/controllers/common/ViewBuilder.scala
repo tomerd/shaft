@@ -93,7 +93,7 @@ protected object ViewBuilder extends Logger
 			case v:Short => true
 			case v:Long => true
 			case v:Float => true
-			case v:Double => true			
+			case v:Double => true		
 			case _ => false
 		}		
 	}
@@ -145,7 +145,9 @@ protected object ViewBuilder extends Logger
 													&&
 													view.approve(method.getName)
 													&& 
-													!method.getReturnType.equals(model.getClass))
+													!method.getReturnType.equals(model.getClass)
+													&& 
+													!method.getReturnType.equals(classOf[Unit]))
 					.foreach( method =>
 					{							
 						// FIXME: add support to specifying the child view name as part of the parent view definition 
@@ -158,12 +160,8 @@ protected object ViewBuilder extends Logger
 						}
 						catch
 						{
-							case e => 
-							{
-								//throw new ViewException("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)) )
-								error("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)))
-								//"error evaluating attribute: %s".format(ExceptionUtil.describe(e))
-							}
+							//throw new ViewException("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)) )
+							case e => error("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e))) 
 						}
 						children += objectToXml(value, Some(StringHelpers.snakify(method.getName)), childView)
 						/*
