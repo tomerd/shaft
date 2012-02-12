@@ -38,7 +38,6 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	
 	@Inject var webService:WebService = null
 	
-	//val routes = config.routes
 	lazy val routes = RestRoutes(Routes.all)
 	
 	def startup
@@ -68,7 +67,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 		info("rest communication service is down")
 	}	
 		
-	private class RestServlet(/*controllers:Iterable[Class[_ <: Controller[_]]]*/) extends javax.servlet.http.HttpServlet
+	private class RestServlet() extends javax.servlet.http.HttpServlet
 	{
 		import javax.servlet.http.HttpServletRequest;
 	  	import javax.servlet.http.HttpServletResponse;
@@ -210,7 +209,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 			    {
 			    	params += item.getFieldName -> item.getString
 			    } 
-			    else 
+			    else  if (item.getSize > 0)
 			    {
 			    	uploads +=item.getFieldName -> RestUploadedFile(item.getName,item.getContentType, item.getSize, item.getInputStream)
 			    }
