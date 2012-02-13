@@ -77,7 +77,8 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  	implicit def xmlToString(node:scala.xml.Node):String = node.toString
 	  	implicit def jsonToString(json:net.liftweb.json.JsonAST.JValue):String = net.liftweb.json.Printer.compact(net.liftweb.json.JsonAST.render(json))
 
-		val tempDirPath = ShaftServer.server.getClass.getClassLoader.getResource(".").getFile() + "/temp"
+		lazy val rootDirPath = ShaftServer.server.getClass.getClassLoader.getResource(".").getFile()
+		lazy val tempDirPath = rootDirPath + "/temp"
 			
 		override protected def service(request:HttpServletRequest, response:HttpServletResponse)
 		{               
@@ -288,13 +289,17 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 				  			def inTransaction[A](a: => A):A = if (storageService.store.isDefined) storageService.store.get.inTransaction(a) else a
 				  		})
 						// context
+				  		binder.bind(classOf[Server]).toInstance(new Server
+				  		{
+				  			val rootDir = rootDirPath
+				  			val tempDir = tempDirPath
+				  		})
 						binder.bind(classOf[Request]).toInstance(new Request
 						{ 
 							val serverName = request.serverName
 							val secured = request.secured
 							val params = request.params		
-							val uploads = request.uploads
-							val tempDir = tempDirPath 
+							val uploads = request.uploads 
 						})
 					} 
 				}, 

@@ -12,7 +12,6 @@ protected trait Request
 	val secured:Boolean
 	val params:Map[String, String]
 	val uploads:Map[String, UploadedFile]
-	val tempDir:String
 }
 
 //protected trait RequestParams extends Map[String, String]
