@@ -20,8 +20,7 @@ protected trait Request
 
 protected trait UploadedFile
 {
-	val name:String
-	val originalFileName:String
+	val fileName:String
 	val contentType:String	
 	val size:Long
 	val stream:InputStream
