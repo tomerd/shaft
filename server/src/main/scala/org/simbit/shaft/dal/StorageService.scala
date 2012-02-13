@@ -24,6 +24,8 @@ protected trait StorageService[T <: app.model.KeyedModel[T]]
 	
 	def update(entity:T):T = storage.update(entity)
 	
+	def save(entity:T):T = if (entity.id < 0) create(entity) else update(entity)
+	
 	def delete(key:Long):Unit = storage.delete(key)
 	
 	def delete(keys:Iterable[Long]):Unit = storage.delete(keys)
