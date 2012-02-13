@@ -127,7 +127,7 @@ protected object ViewBuilder extends Logger
 	{		
 		val modelName = StringHelpers.snakify(model.getClass.getSimpleName)
 		//val nodeName = nodeName1.getOrElse(modelName)
-		val directoryName = StringHelpers.pluralify(modelName)	
+		val directoryName = modelName //StringHelpers.pluralify(modelName)	
 		
 		val view = viewName match 
 		{
