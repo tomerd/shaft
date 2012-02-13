@@ -17,6 +17,7 @@ import util._
 protected trait Controller
 {
 	@Inject private var transactionManager:TransactionManager = null
+	@Inject var server:Server = null
 	@Inject var request:Request = null
 	@Inject var session:Session = null
 	
