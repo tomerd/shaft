@@ -422,10 +422,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  	}
 	  	*/
 	  		
-	  	private case class RestUploadedFile(name:String, contentType:String, size:Long, stream:InputStream) extends UploadedFile
-	  	{
-	  		val originalFileName = ""
-	  	}
+	  	private case class RestUploadedFile(fileName:String, contentType:String, size:Long, stream:InputStream) extends UploadedFile
 			  	
 	  	private object ContentType extends Enumeration 
 	  	{
