@@ -3,17 +3,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.simbit.shaft</groupId>
+	<groupId>com.mishalbs</groupId>
 	<artifactId>shaft.server</artifactId>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
-	<name>simbit shaft restful server</name>
+	<name>shaft server</name>
 	<inceptionYear>2012</inceptionYear>
 	
 	<properties>
 		<scala.version>2.9.1</scala.version>		
 		<ostrich.version>4.10.2</ostrich.version>
-		<unfiltered.version>0.5.3</unfiltered.version>
+		<!-- unfiltered.version>0.5.3</unfiltered.version-->
 		<squeryl.version>0.9.4</squeryl.version>		
 		<lift.version>2.4</lift.version>
 		<!--log4j.version>1.2.16</log4j.version-->
@@ -29,8 +29,8 @@
 		<!--jetty.version>7.4.5.v20110725</jetty.version-->		
 		<!--jetty.version>7.5.3.v20111011</jetty.version-->
 		<!--jetty.version>7.5.4.v20111024</jetty.version-->
-		<jetty.version>7.6.0.RC2</jetty.version>
-		<!--jetty.version>8.0.4.v20111024</jetty.version-->
+		<!--jetty.version>7.6.0.RC2</jetty.version-->
+		<jetty.version>8.1.10.v20130312</jetty.version>
 		<guice.version>3.0</guice.version>
 		<commons-fileupload.version>1.2.2</commons-fileupload.version>
 		<!--commons-math.version>2.2</commons-math.version-->
@@ -83,11 +83,11 @@
   			<version>${ostrich.version}</version>
 		</dependency>
 		<!-- unfiltered -->
-		<dependency>				
+		<!-- dependency>				
   			<groupId>net.databinder</groupId>
   			<artifactId>unfiltered_${scala.version}</artifactId>
   			<version>${unfiltered.version}</version>
-		</dependency>
+		</dependency-->
 		<!-- squeryl -->
 		<dependency>				
   			<groupId>org.squeryl</groupId>
@@ -190,21 +190,21 @@
 		    <artifactId>jetty-servlet</artifactId>
 		    <version>${jetty.version}</version>
 		</dependency>		
-		<!-- dependency>
+		<dependency>
 		    <groupId>org.eclipse.jetty</groupId>
 		    <artifactId>jetty-webapp</artifactId>
 		    <version>${jetty.version}</version>
-		</dependency-->
+		</dependency>
 		<!--dependency>
 	        <groupId>org.eclipse.jetty</groupId>
 	        <artifactId>jetty-websocket</artifactId>
 	        <version>${jetty.version}</version>
 	    </dependency-->
-	    <!-- dependency>
+	    <dependency>
 	        <groupId>org.eclipse.jetty</groupId>
 	        <artifactId>jetty-util</artifactId>
 	        <version>${jetty.version}</version>
-	    </dependency-->
+	    </dependency>
 		<!-- dependency>
 		    <groupId>org.eclipse.jetty</groupId>
 		    <artifactId>jetty-rewrite</artifactId>
@@ -398,6 +398,42 @@
 			    </executions>
 	        </plugin-->
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.scala-tools
+										</groupId>
+										<artifactId>
+											maven-scala-plugin
+										</artifactId>
+										<versionRange>
+											[2.14.1,)
+										</versionRange>
+										<goals>
+											<goal>testCompile</goal>
+											<goal>compile</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<reporting>
