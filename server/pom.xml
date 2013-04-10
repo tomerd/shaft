@@ -3,8 +3,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.mishalbs</groupId>
-	<artifactId>shaft.server</artifactId>
+	<groupId>com.mishlabs</groupId>
+	<artifactId>shaft.server_${scala.version}</artifactId>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 	<name>shaft server</name>
@@ -14,7 +14,7 @@
 		<scala.version>2.9.1</scala.version>		
 		<ostrich.version>4.10.2</ostrich.version>
 		<!-- unfiltered.version>0.5.3</unfiltered.version-->
-		<squeryl.version>0.9.4</squeryl.version>		
+				
 		<lift.version>2.4</lift.version>
 		<!--log4j.version>1.2.16</log4j.version-->
 		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>
@@ -87,13 +87,7 @@
   			<groupId>net.databinder</groupId>
   			<artifactId>unfiltered_${scala.version}</artifactId>
   			<version>${unfiltered.version}</version>
-		</dependency-->
-		<!-- squeryl -->
-		<dependency>				
-  			<groupId>org.squeryl</groupId>
-  			<artifactId>squeryl_${scala.version}</artifactId>
-  			<version>${squeryl.version}</version>
-		</dependency>
+		</dependency-->		
 		<!-- lift -->
 		<dependency>
 		    <groupId>net.liftweb</groupId>
@@ -260,7 +254,7 @@
 		<plugins>
             <plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.0</version>
 				<configuration>
 				        <source>1.5</source>
 				        <target>1.5</target>

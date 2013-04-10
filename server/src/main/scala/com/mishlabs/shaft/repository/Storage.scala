@@ -7,6 +7,7 @@ protected trait Storage[T <: app.model.KeyedModel[T]]
 		
 	//def findAll(condition:Option[Condition]):Iterable[T]
 	
+	/*
 	def find(id:Long):Option[T]
 	
 	def findAll():Iterable[T]
@@ -18,6 +19,7 @@ protected trait Storage[T <: app.model.KeyedModel[T]]
 	def delete(key:Long):Unit
 	
 	def delete(keys:Iterable[Long]):Unit
+	*/
 }
 
 //protected trait Condition
