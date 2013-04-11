@@ -6,18 +6,31 @@ import java.util.UUID
 
 trait Model
 
-trait KeyedModel[T <: KeyedModel[T]] extends Model
+trait KeyedModel[K <: Any, T <: KeyedModel[K, T]] extends Model
 {
 	self:T =>
 	
-	var id:Long = -1
-	def id(value:Long):T = { this.id = value; this }	
-	
-	//var exuid:UUID = new UUID(0,0)
-	//def exuid(value:UUID):T = { this.exuid = value; this }
-	
-	//protected final def isNew:Boolean = this.id < 0	
+	var id:K = Unit.asInstanceOf[K] //HACK...TEST THIS!
+	def id(value:K):T = { this.id = value; this }		
 }
+
+/*
+trait NumericKeyedModel[T <: NumericKeyedModel[T]] extends KeyedModel[Long, T]
+{
+	self:T =>
+	
+	var id:Long = Long.MinValue
+	
+	//protected final def isNew:Boolean = Long.MinValue == this.id	
+}
+
+trait StringKeyedModel[T <: StringKeyedModel[T]] extends KeyedModel[String, T]
+{
+	self:T =>
+	
+	var id:String = null
+}
+*/
 
 /*
 protected trait TimestampedModel[T <: TimestampedModel[T]] extends Model

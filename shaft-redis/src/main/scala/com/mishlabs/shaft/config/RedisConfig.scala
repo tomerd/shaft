@@ -1,7 +1,10 @@
 package com.mishlabs.shaft
 package config
 
-case class RedisConfig(host:String, port:Int) extends DataStoreConfig
+case class RedisConfig extends DataStoreConfig
 {
+	var host:String = null
+	var port:Int = 6379
+  
 	override def toString() = ("host=%s, port=%s").format( host, port ) 		
 }

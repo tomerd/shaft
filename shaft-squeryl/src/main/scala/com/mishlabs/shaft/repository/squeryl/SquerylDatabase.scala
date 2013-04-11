@@ -21,7 +21,7 @@ abstract trait SquerylDatabase extends DataStore
 		val squerylConfig = config match
 		{
 			case config:SquerylConfig => config
-			case _ => throw new Exception("invaid configuration, expected RdbmsConfig") 
+			case _ => throw new Exception("invaid configuration, expected SquerylConfig") 
 		}
 		
 		SessionFactory.concreteFactory = Some(() => 

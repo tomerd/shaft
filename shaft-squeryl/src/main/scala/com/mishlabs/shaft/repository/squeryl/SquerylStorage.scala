@@ -2,18 +2,19 @@ package com.mishlabs.shaft
 package repository
 package squeryl
 
-import java.util.Date
-import java.util.UUID
-import java.sql.Timestamp
+//import java.util.Date
+//import java.util.UUID
+//import java.sql.Timestamp
 
 import org.squeryl._
 import org.squeryl.dsl._
-import org.squeryl.PrimitiveTypeMode._ 
+import org.squeryl.PrimitiveTypeMode._
 
-import app.model.KeyedModel
+import com.mishlabs.shaft.app.model.KeyedModel
+
 import dao.Dao
 
-protected abstract class SquerylStorage[M <: KeyedModel[M], D <: Dao/*[D]*/] extends Storage[M]
+protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao/*[D]*/] extends Storage[M]
 {
 	val table:Table[D]
 	
@@ -93,7 +94,7 @@ protected abstract class SquerylStorage[M <: KeyedModel[M], D <: Dao/*[D]*/] ext
 	protected implicit def model2dao(model:M):D
 	protected implicit def dao2model(dao:D):M	
 	
-	implicit def optdate2opttimestamp(optdate:Option[Date]):Option[Timestamp] = if (optdate.isDefined) Some(new Timestamp(optdate.get.getTime)) else None
+	//implicit def optdate2opttimestamp(optdate:Option[Date]):Option[Timestamp] = if (optdate.isDefined) Some(new Timestamp(optdate.get.getTime)) else None
 	
 	implicit def daoit2modelit(daoit:Iterable[D]):Iterable[M] = daoit.map(dao2model(_))
 }
