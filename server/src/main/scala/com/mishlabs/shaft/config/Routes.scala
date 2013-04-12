@@ -9,7 +9,6 @@ import util._
 
 // FIXME: replace this with a nicer routes solution, something along the lines of ostrich config file or move to unfiltered
 
-
 abstract class Route
 
 protected case class FullRoute(controller:Class[_ <: Controller], api:String, id:Option[String]=None) extends Route

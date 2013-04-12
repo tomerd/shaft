@@ -1,38 +1,41 @@
 package com.mishlabs.shaft
 package services
-package web
+package webapp
 
 import scala.collection._
-
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
 import com.google.inject.Inject
-
 import services._
+import handlers._
 import config._
 import util._
+import com.mishlabs.shaft.services.webapp.handlers.rest.RestHandler
 
-case class ServletInfo(name:String, path:String, initParams:Map[String,String], servlet:Servlet)
-
-trait WebService extends Service
-{  
-	def registerServlet(servlet:ServletInfo)
-	val servlets:Seq[ServletInfo]
+trait WebappService extends Service
+{
+	val servlets:Map[String, ServletInfo]
 }
 
-class ShaftWebService extends ShaftService with WebService
+class ShaftWebappService extends ShaftService with WebappService
 {
-	@Inject var config:WebConfig = null
+	@Inject var config:WebappConfig = null
 	
 	private var embeddedServer:Option[WebServer[_]] = None;
 		
-	val servlets = mutable.ListBuffer[ServletInfo]()
+	val servlets = mutable.HashMap[String, ServletInfo]()
 	
 	def startup
 	{
-		info("web service starting up")	
+		info("web service starting up")
+		
+		servlets += config.restPath -> RestHandler.getServlet(None)
+		
+		config.handlers.foreach( handlerConfig =>
+		{
+			servlets += handlerConfig.path -> handlerConfig.handler.getServlet(handlerConfig.config)			
+		})
 		
 		config.embeddedServer match
 		{
@@ -50,10 +53,6 @@ class ShaftWebService extends ShaftService with WebService
 		try
 		{
 			if (embeddedServer.isDefined) embeddedServer.get.startup
-			
-	        //onstartCallbacks.foreach( _() )
-	        
-	        info("embedded web server is started")
 		}
 		catch
 		{
@@ -80,21 +79,17 @@ class ShaftWebService extends ShaftService with WebService
 		
 		info("web service is down") 
 	}
-	
-	def registerServlet(servlet:ServletInfo)
-	{
-		servlets += servlet
-	}
 }
 
 class WebServerContextListener extends ServletContextListener
 {
-	val webService = 
+	// TODO: find a better way to do this, services are singltones
+	val webappService = 
 	{
-		ServiceManager.services.find( _.isInstanceOf[WebService] ) match
+		ServiceManager.services.find( _.isInstanceOf[WebappService] ) match
 		{
-		  	case Some(webService:WebService) => webService
-		  	case _ => throw new Exception("web service not initialized")
+		  	case Some(webappService:WebappService) => webappService
+		  	case _ => throw new Exception("webapp service not initialized")
 		}
 	}
   
@@ -151,14 +146,20 @@ class WebServerContextListener extends ServletContextListener
 			{
 			  	case request:HttpServletRequest =>
 			    {
-			    	webService.servlets.find( info => request.getRequestURI.toLowerCase.indexOf(info.path.toLowerCase) == 0) match
+			    	webappService.servlets.find{ case(path, info) => matches(request.getRequestURI, path) } match
 					{
-			    	  	case Some(info) => info.servlet.service(request, response)
+			    	  	case Some((path, info)) => info.servlet.service(request, response)
 			    	  	case _ => response.asInstanceOf[HttpServletResponse].sendError(404);
 					}
 			    }
 			  	case _ => response.asInstanceOf[HttpServletResponse].sendError(400);
 			}
+		}
+		
+		def matches(uri:String, path:String):Boolean =
+		{	
+			if (null == uri || null == path) return false
+			uri.split("/")(1).toLowerCase == path.toLowerCase 
 		}
 	}
 }

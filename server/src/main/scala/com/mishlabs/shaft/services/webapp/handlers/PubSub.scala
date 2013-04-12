@@ -1,5 +1,6 @@
 package com.mishlabs.shaft
-package services.comm
+package services.webapp
+package handlers
 
 import scala.actors.Actor
 import scala.collection._

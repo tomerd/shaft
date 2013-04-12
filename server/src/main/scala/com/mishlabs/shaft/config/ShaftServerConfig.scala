@@ -2,11 +2,15 @@ package com.mishlabs.shaft
 package config
 
 import scala.collection._
+
 import com.twitter.util.Config
 import com.twitter.ostrich.admin.RuntimeEnvironment
 import com.twitter.ostrich.admin.config.ServerConfig
+
 import com.mishlabs.shaft.ShaftServer
+
 import com.mishlabs.shaft.repository.Repository
+import com.mishlabs.shaft.services.webapp.handlers.WebappHandler
 
 case class LoggerConfig(level:String, fileSize:Int, maxFiles:Int)
 {
@@ -22,46 +26,21 @@ class LoggerConfigBuilder extends Config[LoggerConfig]
 	def apply() = LoggerConfig(level, fileSize, maxFiles)
 }
 
-case class RepositoryConfig(handler:Repository, configuration:List[DataStoreConfig]) 
+trait DataStoreConfig
+
+case class RepositoryConfig(handler:Repository, dataStores:List[DataStoreConfig]) 
 {
-	override def toString() = ("handler=[%s], configuration=[%s]").format(handler, configuration) 		
+	override def toString() = ("handler=[%s], configs=%s").format(handler, dataStores.map( c => "[%s %s]".format(c.getClass.getSimpleName, c.toString) )) 		
 }
 
 class RepositoryConfigBuilder extends Config[RepositoryConfig]
 {
 	var handler:Repository = null
-	var configuration:List[DataStoreConfig] = null
+	var dataStores:List[DataStoreConfig] = null
 
-	def apply() = RepositoryConfig(handler, configuration)
+	def apply() = RepositoryConfig(handler, dataStores)
 }
 
-trait DataStoreConfig
-
-trait WebServerConfig
-
-case class JettyConfig(path:String, host:String, port:Int, sslPort:Int, keystoreFile:String, keystorePassword:String) extends WebServerConfig
-{
-	override def toString() = ("path=%s, host=%s, port=%s, sslPort=%s, keystoreFile=%s").format(path, host, port, sslPort, keystoreFile)
-}
-
-case class WebConfig(embeddedServer:Option[WebServerConfig]) 
-{
-	override def toString() = ("embeddedServer=[%s]").format(embeddedServer)
-}
-
-class WebConfigBuilder extends Config[WebConfig]
-{
-	/*
-	var path:String = "/"
-	var host:String = "127.0.0.1"
-	var port:Int = 8080
-	var sslPort:Int = 8443
-	var keystoreFile = "shaft.pkcs12"
-	var keystorePassword = "shaft"
-	*/  
-
-	def apply() = WebConfig(Some(JettyConfig("/", "127.0.0.1", 8080, 8443, "shaft.pkcs12", "shaft")))
-}
 
 /*
 case class WebAppConfig(enabled:Boolean, path:String, client:WebClientConfig) 
@@ -103,32 +82,32 @@ trait InternalCommunicationConfig
 }
 */
 
-case class RestConfig(enabled:Boolean, path:String) //extends InternalCommunicationConfig
+trait WebServerConfig
+
+case class JettyConfig(path:String, host:String, port:Int, sslPort:Int, keystoreFile:String, keystorePassword:String) extends WebServerConfig
 {
-	override def toString() = ("enabled=%s, path=%s").format(enabled, path)
+	override def toString() = ("path=%s, host=%s, port=%s, sslPort=%s, keystoreFile=%s").format(path, host, port, sslPort, keystoreFile)
 }
 
-class RestConfigBuilder extends Config[RestConfig]
+trait WebappHandlerConfig
 {
-	var enabled:Boolean = true
-	var path:String = "/rest"
-
-	def apply() = RestConfig(enabled, path)
+	var handler:WebappHandler
+	var path:String
+	var config:Any
 }
 
-case class BayeuxConfig(enabled:Boolean, path:String, requestChannel:String, responseChannel:String) //extends InternalCommunicationConfig
+case class WebappConfig(embeddedServer:Option[WebServerConfig], restPath:String, handlers:List[WebappHandlerConfig]) 
 {
-	override def toString() = ("enabled=%s, path=%s, requestChannel=%s, responseChannel=%s").format(enabled, path, requestChannel, responseChannel)
+	override def toString() = ("embeddedServer=[%s], restPath=%s, handlers=%s").format(embeddedServer, restPath, handlers.map( h => "[%s %s]".format(h.getClass.getSimpleName, h.toString) ))
 }
 
-class BayeuxConfigBuilder extends Config[BayeuxConfig]
+class WebAppConfigBuilder extends Config[WebappConfig]
 {
-	var enabled:Boolean = false
-	var path:String = "/bayeux"
-	var requestChannel:String = "/request"
-	var responseChannel:String = "/response"
-
-	def apply() = BayeuxConfig(enabled, path, requestChannel, responseChannel)
+	var enbeddedWebServer:Option[WebServerConfig] = Some(JettyConfig("/", "127.0.0.1", 8080, 8443, "shaft.pkcs12", "shaft"))
+	var restPath = "rest"
+	var handlers = List.empty[WebappHandlerConfig]
+	
+	def apply() = WebappConfig(enbeddedWebServer, restPath, handlers)
 }
 
 // rollup
@@ -146,11 +125,9 @@ protected final object ShaftConfig
 */
 
 protected final case class ShaftConfig(	repository:RepositoryConfig, 
-										web:WebConfig,  
-										rest:RestConfig, 
-										bayeux:BayeuxConfig)
+										webapp:WebappConfig)
 {
-	override def toString() = ("repository=[%s]\nweb=[%s]\nrest=[%s]\nbayeux=[%s]").format(repository, web, rest, bayeux)		
+	override def toString() = ("repository=[%s]\nwebapp=[%s]").format(repository, webapp)		
 }
 
 protected abstract class ShaftServerConfiguration(val shaftConfig:ShaftConfig)
@@ -159,9 +136,7 @@ protected trait ShaftServerConfigurator[S <: ShaftServer[C], C <: ShaftServerCon
 { 
 	final val logger = new LoggerConfigBuilder()
 	final val repository = new RepositoryConfigBuilder()
-	final val web = new WebConfigBuilder()
-	final val rest = new RestConfigBuilder()
-	final val bayeux = new BayeuxConfigBuilder()
+	final val webapp = new WebAppConfigBuilder()
 	
 	private var _shaftConfig:ShaftConfig = null
 	final def shaftConfig = _shaftConfig
@@ -171,12 +146,14 @@ protected trait ShaftServerConfigurator[S <: ShaftServer[C], C <: ShaftServerCon
 	  	import com.mishlabs.shaft.util.LoggerConfigurator
 	  	import org.apache.log4j.Level
 	  	
-		val loggerConfig = logger()
-		LoggerConfigurator.configure(Level.toLevel(loggerConfig.level), loggerConfig.fileSize, loggerConfig.maxFiles)
+		_shaftConfig = new ShaftConfig(repository(), webapp())
 		
-		_shaftConfig = new ShaftConfig(repository(), web(), rest(), bayeux())
-			
-		this.createServer(this.buildConfiguration())
+		val server = this.createServer(this.buildConfiguration())
+		
+		val loggerConfig = logger()
+		LoggerConfigurator.configure(Level.toLevel(loggerConfig.level), "%s.log".format(server.name), loggerConfig.fileSize, loggerConfig.maxFiles)
+		
+		server
 	}
 	
 	final def reload(server:S) 

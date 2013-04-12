@@ -24,7 +24,7 @@ class ShaftRepositoryService extends ShaftService with RepositoryService
 		
 		try
 		{
-			repository.get.initialize(config.configuration)
+			repository.get.initialize(config.dataStores)
 		}
 		catch
 		{

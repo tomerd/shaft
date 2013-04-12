@@ -1,5 +1,6 @@
 package com.mishlabs.shaft 
-package services.comm
+package services.webapp
+package handlers
 
 import java.util.Date
 import java.util.UUID

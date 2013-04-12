@@ -1,21 +1,23 @@
 package com.mishlabs.shaft
-package services
+package services.webapp
+package handlers
+
+import scala.collection.Map
 
 import javax.inject.Inject
+import javax.servlet.Servlet
 
 import lib.messaging._
 
 import util._
 
-trait Service
-{
-	def startup
-	def shutdown
-}
+case class ServletInfo(initParams:Map[String,String], servlet:Servlet)
 
-abstract class ShaftService extends Service with Logger
+trait WebappHandler 
 {	
 	@Inject var bus:MessageBus = null
+  
+	def getServlet(config:Any):ServletInfo
 	
 	protected final def reportError(description:String, cause:Throwable)
 	{	

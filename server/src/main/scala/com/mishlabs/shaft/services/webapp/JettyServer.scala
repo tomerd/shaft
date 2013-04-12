@@ -1,6 +1,6 @@
 package com.mishlabs.shaft
 package services
-package web
+package webapp
 
 import scala.collection._
 import javax.servlet.Filter

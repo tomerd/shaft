@@ -21,10 +21,9 @@ object ServiceManager
 	   val injector = Guice.createInjector(new ServicesModule(bus, config))	   
 	   // repository service must be first as it is used by other services
 	   services += injector.getInstance(classOf[repository.RepositoryService])	   
-	   services += injector.getInstance(classOf[comm.rest.RestCommunicationService])
-	   services += injector.getInstance(classOf[comm.bayeux.BayeuxCommunicationService])	   
-	   // web service must be created last as it will look for servlets registered by prior services
-	   services += injector.getInstance(classOf[web.WebService])
+	   //services += injector.getInstance(classOf[comm.rest.RestCommunicationService])
+	   //services += injector.getInstance(classOf[comm.bayeux.BayeuxCommunicationService])
+	   services += injector.getInstance(classOf[webapp.WebappService])
 	   services.foreach { _.startup }
 	}
 				
@@ -42,14 +41,14 @@ class ServicesModule(bus:MessageBus, configuration:ShaftConfig) extends Module
 		// context
 		binder.bind(classOf[MessageBus]).toInstance(bus)
 		binder.bind(classOf[config.RepositoryConfig]).toInstance(configuration.repository)
-		binder.bind(classOf[config.WebConfig]).toInstance(configuration.web)
-		binder.bind(classOf[config.RestConfig]).toInstance(configuration.rest)
-		binder.bind(classOf[config.BayeuxConfig]).toInstance(configuration.bayeux)
+		binder.bind(classOf[config.WebappConfig]).toInstance(configuration.webapp)
+		//binder.bind(classOf[config.RestConfig]).toInstance(configuration.rest)
+		//binder.bind(classOf[config.BayeuxConfig]).toInstance(configuration.bayeux)
 		// services are singletons
 		binder.bind(classOf[repository.RepositoryService]).toInstance(new repository.ShaftRepositoryService())
-		binder.bind(classOf[web.WebService]).toInstance(new web.ShaftWebService())
-		binder.bind(classOf[comm.rest.RestCommunicationService]).toInstance(new comm.rest.ShaftRestCommunicationService())
-		binder.bind(classOf[comm.bayeux.BayeuxCommunicationService]).toInstance(new comm.bayeux.ShaftBayeuxCommunicationService())
+		binder.bind(classOf[webapp.WebappService]).toInstance(new webapp.ShaftWebappService())
+		//binder.bind(classOf[comm.rest.RestCommunicationService]).toInstance(new comm.rest.ShaftRestCommunicationService())
+		//binder.bind(classOf[comm.bayeux.BayeuxCommunicationService]).toInstance(new comm.bayeux.ShaftBayeuxCommunicationService())
 	} 
 }  
  

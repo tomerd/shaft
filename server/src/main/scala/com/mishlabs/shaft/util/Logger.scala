@@ -15,53 +15,32 @@ object LoggerConfigurator
 	  				
 	def default() = configure(Level.INFO)
 	  
-	def configure(level:Level):Unit = configure(level, None, None, None, None)
+	def configure(level:Level):Unit = configure(level, None, None, None, None, None)
 	
-	def configure(level:Level, maxFileSize:Int, maxFiles:Int):Unit = configure(level, Some(maxFileSize), Some(maxFiles), None, None)
+	def configure(level:Level, fileName:String, maxFileSize:Int, maxFiles:Int):Unit = configure(level, Some(fileName), Some(maxFileSize), Some(maxFiles), None, None)
 	
-	def configure(level:Level, maxFileSize:Option[Int], maxFiles:Option[Int], fileFormat:Option[String], consoleFormat:Option[String]):Unit =
+	def configure(level:Level, fileName:Option[String], maxFileSize:Option[Int], maxFiles:Option[Int], fileFormat:Option[String], consoleFormat:Option[String]):Unit =
 	{
 		val props = new Properties() 
-		
-		val maxFileSize1 = maxFileSize match
-		{
-		  	case Some(value) => value
-		  	case _ => 1
-		}
-		
-		val maxFiles1 = maxFiles match
-		{
-		  	case Some(value) => value
-		  	case _ => 10
-		}
-		
-		val fileFormat1 = fileFormat match
-		{
-		  	case Some(value) => value
-		  	case _ => defaultFileFormat
-		}
-		
-		val consoleFormat1 = consoleFormat match
-		{
-		  	case Some(value) => value
-		  	case _ => defaultConsoleFormat
-		}
-		
-		props.setProperty("log4j.rootLogger", "%s, stdout, file".format(level))
+				
+		props.setProperty("log4j.rootLogger", "%s, stdout".format(level))
 	
 		// console
 		props.setProperty("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender")
 		props.setProperty("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout")
-		props.setProperty("log4j.appender.stdout.layout.ConversionPattern", consoleFormat1)
+		props.setProperty("log4j.appender.stdout.layout.ConversionPattern", consoleFormat.getOrElse(defaultConsoleFormat))
 		
 		// log file
-		props.setProperty("log4j.appender.file", "org.apache.log4j.RollingFileAppender")
-		props.setProperty("log4j.appender.file.File", "log/element.log")
-		props.setProperty("log4j.appender.file.MaxFileSize",  "%sMB".format(maxFileSize1))
-		props.setProperty("log4j.appender.file.MaxBackupIndex", maxFiles1.toString)
-		props.setProperty("log4j.appender.file.layout", "org.apache.log4j.PatternLayout")
-		props.setProperty("log4j.appender.file.layout.ConversionPattern", fileFormat1)
-		
+		if (fileName.isDefined)
+		{
+			props.setProperty("log4j.rootLogger", "%s, stdout, file".format(level))
+			props.setProperty("log4j.appender.file", "org.apache.log4j.RollingFileAppender")
+			props.setProperty("log4j.appender.file.File", "log/%s".format(fileName.get))
+			props.setProperty("log4j.appender.file.MaxFileSize",  "%sMB".format(maxFileSize.getOrElse(1)))
+			props.setProperty("log4j.appender.file.MaxBackupIndex", maxFiles.getOrElse(10).toString)
+			props.setProperty("log4j.appender.file.layout", "org.apache.log4j.PatternLayout")
+			props.setProperty("log4j.appender.file.layout.ConversionPattern", fileFormat.getOrElse(defaultFileFormat))
+		}
 		LogManager.resetConfiguration()
 		PropertyConfigurator.configure(props)
 	}

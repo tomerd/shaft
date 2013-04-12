@@ -1,5 +1,8 @@
 package com.mishlabs.shaft
-package services.comm.rest
+package services
+package webapp
+package handlers
+package rest
 
 import scala.collection._
 

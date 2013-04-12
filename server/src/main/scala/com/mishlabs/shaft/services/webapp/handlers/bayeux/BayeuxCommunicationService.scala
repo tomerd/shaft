@@ -1,6 +1,7 @@
 package com.mishlabs.shaft
 package services
-package comm
+package webapp
+package handlers
 package bayeux
 
 import scala.collection._
@@ -12,82 +13,75 @@ import org.cometd.server.CometdServlet
 import com.google.inject.Inject
 import config._
 import util._
-import services.web.WebService
-import javax.servlet.ServletConfig
-import com.mishlabs.shaft.services.web.ServletInfo
+import com.mishlabs.shaft.services.webapp.handlers.WebappHandler
 
-trait BayeuxCommunicationService extends CommunicationService
+case class BayeuxConfig(path:String, requestChannel:String, responseChannel:String)
 {
+	//var path:String = "/bayeux"
+	//var requestChannel:String = "/request"
+	//var responseChannel:String = "/response"
+	
+	override def toString() = "path=%s, requestChannel=%s, responseChannel=%s".format(path, requestChannel, responseChannel)
 }
 
-class ShaftBayeuxCommunicationService extends ShaftCommunicationService with BayeuxCommunicationService
+object BayeuxHandler extends WebappHandler with Logger
 {	
-	@Inject var config:BayeuxConfig = null
-	@Inject var webService:WebService = null
-	
-	private val pusbsub = new PubSub()
+	private val pubsub = new PubSub()
 	
 	private var service:BayeuxService = null
 	
-	def startup()
-	{
-	  	if (!config.enabled)
-	  	{
-	  		info("bayeux communication service disabled")
-	  		return
-	  	}
-	  	  	
-		info("bayeux communication service starting up")
-		
-		pusbsub.startup
-				
-		//val context = new ServletContextHandler(ServletContextHandler.SESSIONS)
-		//context.setContextPath(config.path)
-		
-		//val servlet = new CometdServlet()		
-	    //val servletHolder = new ServletHolder(servlet)
-		//servletHolder.setInitParameter("transports", "org.cometd.websocket.server.WebSocketTransport")
-		//servletHolder.setInitParameter("allowedTransports", "org.cometd.websocket.server.WebSocketTransport")
-		//servletHolder.setInitParameter("logLevel", getLogLevel().toString) 
-	    //context.addServlet(servletHolder, "/*")
-
-		//webService.registerHandler(context)
-		
-		//webService.onStart(()=>
-	    //{
-			//service = new BayeuxService(servlet.getBayeux)		
-			//service.startup
-	    //})
-	    
-		val servlet:CometdServletWrapper = new CometdServletWrapper
-		servlet.onStart(()=>
-	    {
-			service = new BayeuxService(servlet.getBayeux)		
-			service.startup
-	    })
-	    
-	    val initParams = mutable.HashMap[String, String]()
-	    initParams += "transports" -> "org.cometd.websocket.server.WebSocketTransport" 	    
-		initParams += "allowedTransports" -> "org.cometd.websocket.server.WebSocketTransport"
-		initParams += "logLevel" -> getLogLevel().toString	    
-		webService.registerServlet(ServletInfo("bayeux", config.path, initParams, servlet))
-	    	  	    
-	    info("bayeux communication service is up")
-	}
-		
-	def shutdown()
-	{
-		if (!config.enabled) return;
-	  
-		info("bayeux communication service shutting down")
-		
-		pusbsub.shutdown
-		
-		if (null != service) service.shutdown
-		
-		info("bayeux communication service is down")
-	}
+	private var config:BayeuxConfig = null
 	
+	def getServlet(config:Any) =
+	{
+		config match
+		{
+		  	case config:BayeuxConfig =>
+		    {		
+		    	this.config = config
+				//val context = new ServletContextHandler(ServletContextHandler.SESSIONS)
+				//context.setContextPath(config.path)
+				
+				//val servlet = new CometdServlet()		
+			    //val servletHolder = new ServletHolder(servlet)
+				//servletHolder.setInitParameter("transports", "org.cometd.websocket.server.WebSocketTransport")
+				//servletHolder.setInitParameter("allowedTransports", "org.cometd.websocket.server.WebSocketTransport")
+				//servletHolder.setInitParameter("logLevel", getLogLevel().toString) 
+			    //context.addServlet(servletHolder, "/*")
+		
+				//webService.registerHandler(context)
+				
+				//webService.onStart(()=>
+			    //{
+					//service = new BayeuxService(servlet.getBayeux)		
+					//service.startup
+			    //})
+			    
+				val servlet:CometdServletWrapper = new CometdServletWrapper
+				servlet.onStart(() =>
+			    {
+			    	pubsub.startup			      
+					service = new BayeuxService(servlet.getBayeux)		
+					service.startup
+			    })
+			    
+			    servlet.onEnd(() => 
+			    {
+			    	pubsub.shutdown			    	
+			    	service.shutdown
+			    })
+			    
+			    val initParams = mutable.HashMap[String, String]()
+			    initParams += "transports" -> "org.cometd.websocket.server.WebSocketTransport" 	    
+				initParams += "allowedTransports" -> "org.cometd.websocket.server.WebSocketTransport"
+				initParams += "logLevel" -> getLogLevel().toString	    
+				
+				ServletInfo(initParams, servlet)
+		    }
+		  	case _ => throw new Exception("invalid configuration, expected BayeuxConfig")
+		}
+	}
+		
 	// 0 = warn, 1 = info, 2 = debug
 	private def getLogLevel():Int =
 	{
@@ -137,8 +131,8 @@ class ShaftBayeuxCommunicationService extends ShaftCommunicationService with Bay
 				ElementJsonCodec.decode(payload) match 
 				{				  	
 				  	case request:KeepAliveRequest => // do nothing	
-				  	case request:SubscribeRequest => pusbsub.subscribe(request.channel, communicator)
-				  	case request:UnsubscribeRequest => pusbsub.unsubscribe(request.channel, communicator)
+				  	case request:SubscribeRequest => pubsub.subscribe(request.channel, communicator)
+				  	case request:UnsubscribeRequest => pubsub.unsubscribe(request.channel, communicator)
 				  	case _ => throw new Exception("unknown client request " + message)
 				}
 			}
@@ -176,7 +170,8 @@ class ShaftBayeuxCommunicationService extends ShaftCommunicationService with Bay
 	
 	private class CometdServletWrapper extends CometdServlet
 	{
-		var onStartCallback:Option[()=>Unit] = None
+		var initCallback:Option[()=>Unit] = None
+		var destroyCallback:Option[()=>Unit] = None
 		
 		//setInitParameter("transports", "org.cometd.websocket.server.WebSocketTransport")
 		//setInitParameter("allowedTransports", "org.cometd.websocket.server.WebSocketTransport")
@@ -185,13 +180,23 @@ class ShaftBayeuxCommunicationService extends ShaftCommunicationService with Bay
 		override def init
 		{		  	
 			super.init
-			if (onStartCallback.isDefined) onStartCallback.get.apply
+			if (initCallback.isDefined) initCallback.get.apply
+		}
+		
+		override def destroy
+		{
+			super.destroy
+			if (destroyCallback.isDefined) destroyCallback.get.apply
 		}
 		
 		def onStart(callback:()=>Unit)
 		{
-			onStartCallback = Some(callback)
+			initCallback = Some(callback)
 		}
-	}
-
+		
+		def onEnd(callback:()=>Unit)
+		{
+			destroyCallback = Some(callback)
+		}
+	}		
 }

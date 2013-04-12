@@ -1,6 +1,7 @@
 package com.mishlabs.shaft
 package services
-package comm
+package webapp
+package handlers
 package rest
 
 import java.util.Date
@@ -18,9 +19,6 @@ import org.apache.commons.fileupload.FileItem
 
 import com.google.inject.{ Guice, Inject, Injector, Module, Binder }
 
-import web.WebService
-import web.ServletInfo
-
 import repository.RepositoryService
 
 import app.controllers._
@@ -30,58 +28,37 @@ import config._
 import routes._
 import util._
 
-trait RestCommunicationService extends CommunicationService
+/*
+case class RestConfig(path:String)
 {
+	override def toString() = "path=%s".format(path)
 }
-		
-class ShaftRestCommunicationService extends ShaftCommunicationService with RestCommunicationService
+*/
+
+object RestHandler extends WebappHandler
 {
-	@Inject var config:RestConfig = null	
 	@Inject var repositoryService:RepositoryService = null
-	
-	@Inject var webService:WebService = null
-	
+  
 	lazy val routes = RestRoutes(Routes.all)
 	
-	def startup
+	/*def getServlet(config:Any):ServletInfo = config match 
 	{
-	  	if (!config.enabled)
-	  	{
-	  		info("rest communication service disabled")
-	  		return
-	  	}
-	  
-		info("rest communication service starting up")
-			
-		//val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
-		//context.setContextPath(config.path)		
-		//context.addServlet(new ServletHolder(new RestServlet(/*this.controllers*/)), "/*")
-		//webService.registerHandler(context)
-		
-		webService.registerServlet(ServletInfo("rest", config.path, Map.empty[String,String], new RestServlet))
-		
-	    info("rest communication service is up")
-	}
+	  	case config:RestConfig => ServletInfo(Map.empty[String,String], new RestServlet)
+	  	case _ => throw new Exception("invalid configuration, expected RestConfig")
+	}*/
 	
-	def shutdown
-	{
-		if (!config.enabled) return;
-	  
-		info("rest communication service shutting down")		
-		
-		info("rest communication service is down")
-	}	
-		
-	private class RestServlet() extends HttpServlet
+	def getServlet(config:Any) = ServletInfo(Map.empty[String,String], new RestServlet)
+	
+	private class RestServlet extends HttpServlet with Logger
 	{
 		import javax.servlet.http.HttpServletRequest;
 	  	import javax.servlet.http.HttpServletResponse;
-
+	
 	  	import java.io._
 	  	
 	  	implicit def xmlToString(node:scala.xml.Node):String = node.toString
 	  	implicit def jsonToString(json:net.liftweb.json.JsonAST.JValue):String = net.liftweb.json.Printer.compact(net.liftweb.json.JsonAST.render(json))
-
+	
 		lazy val rootDirPath = ShaftServer.server.getClass.getClassLoader.getResource(".").getFile()
 		lazy val tempDirPath = rootDirPath + "/temp"
 			
@@ -95,7 +72,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 		  			// TODO: read the token name from a configuration file
 		  			val tokenName = "shaft_token" 
 		  		} 
- 	  			  			
+	  			  			
 	  			val restRequest = parseRequest(request) match
 	  			{
 	  				case Some(request) => request
@@ -124,44 +101,44 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  	private def parseRequest(request:HttpServletRequest):Option[RestRequest] =
 	  	{
 	  		var path = request.getRequestURI
-  			if (null == path || path.length == 0 || "/".equals(path)) return None
-  			
-  			val serverName = request.getServerName
-  			
-  			val secured = request.isSecure
-  			
-  			val multiPartForm = parseMultiPartForm(request)  
-  			
+			if (null == path || path.length == 0 || "/".equals(path)) return None
+			
+			val serverName = request.getServerName
+			
+			val secured = request.isSecure
+			
+			val multiPartForm = parseMultiPartForm(request)  
+			
 	  		val params = request.getParameterMap.map{ case (key:String,value:Array[String]) => key -> value.reduceLeft(_ + "," + _) }.toMap[String, String] ++ multiPartForm.params
 	  		
 	  		val uploads = multiPartForm.uploads 
-  									
-  			val contentType = path.indexOf(".") match
-  			{
-  			  	case index if index > 0 && index < path.length =>
-  			  	{
-  			  		val ext = path.substring(index+1).toLowerCase()
-  			  		path = path.substring(0, index) 			  	  
-  			  		ext match
-  			  		{
-  			  		  	case "xml" => ContentType.Xml
-  			  		  	case "json" => ContentType.Json
-  			  		  	case _ => throw new BadRequestException("unknown content type " + ext)
-  			  		}  			  		
-  			  	}
-  			  	case _ => ContentType.Xml
-  			}
+									
+			val contentType = path.indexOf(".") match
+			{
+			  	case index if index > 0 && index < path.length =>
+			  	{
+			  		val ext = path.substring(index+1).toLowerCase()
+			  		path = path.substring(0, index) 			  	  
+			  		ext match
+			  		{
+			  		  	case "xml" => ContentType.Xml
+			  		  	case "json" => ContentType.Json
+			  		  	case _ => throw new BadRequestException("unknown content type " + ext)
+			  		}  			  		
+			  	}
+			  	case _ => ContentType.Xml
+			}
 	  		
 	  		val view = path.indexOf("~") match
-  			{  				
-  			  	case index if index > 0 && index < path.length => 
-  			  	{
-  			  		val view = path.substring(index+1).toLowerCase()
-  			  		path = path.substring(0, index)
-  			  		Some(view)	
-  			  	}
-  			  	case _ => None
-  			}
+			{  				
+			  	case index if index > 0 && index < path.length => 
+			  	{
+			  		val view = path.substring(index+1).toLowerCase()
+			  		path = path.substring(0, index)
+			  		Some(view)	
+			  	}
+			  	case _ => None
+			}
 	  		
 	  		if (path.startsWith("/")) path = path.substring(1)
 	  		val parts = path.split("/")
@@ -201,7 +178,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 			if (!tempDirectory.exists()) tempDirectory.mkdir();
 			val factory = new DiskFileItemFactory();
 			factory.setRepository(tempDirectory);
-
+	
 			val upload = new ServletFileUpload(factory)
 			val items = upload.parseRequest(request) 
 			var iterator = items.iterator()
@@ -239,14 +216,14 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  				}
 	  			} 
 	  			case ContentType.Json => 
-  				{
-  					response match
+				{
+					response match
 	  				{
 	  					case result:XmlResponse => CastingHelpers.xmlToJson(result.toXml()) 
 	  					case result:JsonResponse => result.toJson()
 	  					case result => throw new BadRequestException("this API does not return json")
 	  				}
-  				}
+				}
 	  			case _ => response.toString
 	  		}
 	  	}
@@ -406,7 +383,7 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  									serverName:String)
 	  	
 	  	private case class MultiPartForm(params:Map[String, String], uploads:Map[String, UploadedFile])
-
+	
 	  	/*
 	  	private class RestRequestParams(map:Map[String,String]) extends RequestParams
 		{	  		
@@ -435,10 +412,9 @@ class ShaftRestCommunicationService extends ShaftCommunicationService with RestC
 	  		val Xml, Json, Unknown = Value
 	  	}
 	}
+	
+	private class BadImplementationException(description:String, cause:Throwable=null) extends Throwable(description, cause)
+	private class BadRequestException(description:String) extends Throwable(description)
+	private class UnknownRequestException(request:String) extends BadRequestException("unknown request '%s', make sure it is correctly mapped in routes".format(request))
+
 }
-
-private class BadImplementationException(description:String, cause:Throwable=null) extends Throwable(description, cause)
-private class BadRequestException(description:String) extends Throwable(description)
-private class UnknownRequestException(request:String) extends BadRequestException("unknown request '%s', make sure it is correctly mapped in routes".format(request))
-
-

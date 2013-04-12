@@ -78,8 +78,9 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 	final override def start()
 	{
 		info("--------------------------------------------------------------------------------------------------------")
-		info("%s server starting with configuration:".format(name))			
+		info("%s server starting with configuration:".format(name))	
 		info(config.toString)
+		info("--------------------------------------------------------------------------------------------------------")
 		
 		messageHandler.start		
 		bus.subscribe(classOf[Error], messageHandler)

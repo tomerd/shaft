@@ -1,6 +1,6 @@
 package com.mishlabs.shaft
 package services
-package web
+package webapp
 
 import com.mishlabs.shaft.config.WebServerConfig
 import com.mishlabs.shaft.util.Logger
