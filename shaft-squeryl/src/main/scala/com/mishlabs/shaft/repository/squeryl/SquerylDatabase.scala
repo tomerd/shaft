@@ -14,7 +14,7 @@ import dao._
  
 abstract trait SquerylDatabase extends DataStore
 {	
-	val schema:SquerylSchema
+	val schema:Schema
 	
 	final def initialize(config:DataStoreConfig) = 
 	{
@@ -25,26 +25,19 @@ abstract trait SquerylDatabase extends DataStore
 		}
 		
 		SessionFactory.concreteFactory = Some(() => 
-		{			
-			val adapter = Class.forName(squerylConfig.driver).getName match
-			{
-				// TODO: map rest of squeryl drivers 
-				case "org.h2.Driver" => new adapters.H2Adapter
-				case "com.mysql.jdbc.Driver" => new adapters.MySQLInnoDBAdapter
-				case "org.postgresql.Driver" => new adapters.PostgreSqlAdapter
-				case _ => throw new Exception("unknown db driver: " + squerylConfig.driver)
-			}
+		{
+			if (null == squerylConfig.adapter) throw new Exception("unknown squeryl adpater")
+			val adapter = squerylConfig.adapter.newInstance
 			val connection = java.sql.DriverManager.getConnection(squerylConfig.url, squerylConfig.user, squerylConfig.password)
 			val session = Session.create(connection, adapter)
-			// FIXME: should be debug
-			session.setLogger((sql) => SqlLogger.info(sql) )
+			session.setLogger((sql) => SqlLogger.debug(sql) )
 			session
 		})
 		
-		this.schemify()
+		this.schemify
 	}
 	
-	private def schemify()
+	private def schemify
 	{
 		transaction
 		{			
@@ -72,7 +65,8 @@ abstract trait SquerylDatabase extends DataStore
 	private object SqlLogger extends Logger
 }
 
-protected trait SquerylSchema extends org.squeryl.Schema
+
+protected trait ShaftSchema extends org.squeryl.Schema
 {
 	override def tableNameFromClassName(tableName:String):String = StringHelpers.snakify(StringHelpers.pluralify(tableName.replace("Dao", "")))
 	
@@ -80,5 +74,4 @@ protected trait SquerylSchema extends org.squeryl.Schema
 	
 	override def applyDefaultForeignKeyPolicy(foreignKeyDeclaration: ForeignKeyDeclaration) = foreignKeyDeclaration.unConstrainReference
 }
-
 
