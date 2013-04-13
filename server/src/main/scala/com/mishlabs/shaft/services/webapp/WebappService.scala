@@ -3,19 +3,24 @@ package services
 package webapp
 
 import scala.collection._
+
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+
 import com.google.inject.Inject
-import services._
+
 import handlers._
+import rest.RestHandler
+
 import config._
+import routes.Routes
+
 import util._
-import com.mishlabs.shaft.services.webapp.handlers.rest.RestHandler
 
 trait WebappService extends Service
 {
-	val servlets:Map[String, ServletInfo]
+	val servlets:Map[String, Pair[Servlet, Map[String, String]]]
 }
 
 class ShaftWebappService extends ShaftService with WebappService
@@ -24,7 +29,7 @@ class ShaftWebappService extends ShaftService with WebappService
 	
 	private var embeddedServer:Option[WebServer[_]] = None;
 		
-	val servlets = mutable.HashMap[String, ServletInfo]()
+	val servlets = mutable.HashMap[String, Pair[Servlet, Map[String, String]]]()
 	
 	def startup
 	{
@@ -32,10 +37,11 @@ class ShaftWebappService extends ShaftService with WebappService
 		
 		servlets += config.restPath -> RestHandler.getServlet(None)
 		
-		config.handlers.foreach( handlerConfig =>
+		Routes.servlets.foreach({ case(path, servletInfo) => servlets += path -> servletInfo })
+		/*config.handlers.foreach( handlerConfig =>
 		{
 			servlets += handlerConfig.path -> handlerConfig.handler.getServlet(handlerConfig.config)			
-		})
+		})*/
 		
 		config.embeddedServer match
 		{
@@ -98,6 +104,14 @@ class WebServerContextListener extends ServletContextListener
 		val context = contextEvent.getServletContext();
 		//context.addFilter("/router", new RouterServlet)
 				
+		webappService.servlets.foreach({ case (path, servletInfo) => 
+  		{
+  			val servlet = servletInfo._1
+  			val initParams = servletInfo._2
+  		    val registration:ServletRegistration = context.addServlet(servlet.getClass.getSimpleName, servlet)
+  		    initParams.foreach({ case(name, value) => registration.setInitParameter(name, value) })		  		    
+  		}})
+		  		
 		// FIXME, not sure why the generic addFilter is not working
 		// this will not work for other javax containers (jetty only code)!
 		context match
@@ -146,9 +160,9 @@ class WebServerContextListener extends ServletContextListener
 			{
 			  	case request:HttpServletRequest =>
 			    {
-			    	webappService.servlets.find{ case(path, info) => matches(request.getRequestURI, path) } match
+			    	webappService.servlets.find{ case(path, servletInfo) => matches(request.getRequestURI, path) } match
 					{
-			    	  	case Some((path, info)) => info.servlet.service(request, response)
+			    	  	case Some((path, servletInfo)) => servletInfo._1.service(request, response)
 			    	  	case _ => response.asInstanceOf[HttpServletResponse].sendError(404);
 					}
 			    }
@@ -159,7 +173,9 @@ class WebServerContextListener extends ServletContextListener
 		def matches(uri:String, path:String):Boolean =
 		{	
 			if (null == uri || null == path) return false
-			uri.split("/")(1).toLowerCase == path.toLowerCase 
+			val parts = uri.split("/")
+			if (0 == parts.length) return false
+			parts(1).toLowerCase == path.toLowerCase 
 		}
 	}
 }

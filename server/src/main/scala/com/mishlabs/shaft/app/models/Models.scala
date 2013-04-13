@@ -40,22 +40,22 @@ protected trait TimestampedModel[T <: TimestampedModel[T]] extends Model
 	var createdBy:Option[String] = None
 	def createdBy(value:Option[String]):T = { this.createdBy = value;  this }
 	
-	var createdOn:Option[Date] = None
-	def createdOn(value:Option[Date]):T = { this.createdOn = value;  this }
+	var createdAt:Option[Date] = None
+	def createdAt(value:Option[Date]):T = { this.createdAt = value;  this }
 	
 	var modifiedBy:Option[String] = None
 	def modifiedBy(value:Option[String]):T = { this.modifiedBy = value;  this }
 	
-	var modifiedOn:Option[Date] = None
-	def modifiedOn(value:Option[Date]):T = { this.modifiedOn = value;  this }
+	var modifiedAt:Option[Date] = None
+	def modifiedAt(value:Option[Date]):T = { this.modifiedAt = value;  this }
 		
 	//final def touch(modifier:User):T = touch(modifier.username)
 	
-	final def touch(modifier:String):T = this.modifiedBy(Some(modifier)).modifiedOn(Some(new Date()))	
+	final def touch(modifier:String):T = this.modifiedBy(Some(modifier)).modifiedAt(Some(new Date()))	
 	
 	//final def touchNew(modifier:User):T = touchNew(modifier.username)
 	
-	final def touchNew(modifier:String):T = this.createdBy(Some(modifier)).createdOn(Some(new Date())).touch(modifier)
+	final def touchNew(modifier:String):T = this.createdBy(Some(modifier)).createdAt(Some(new Date())).touch(modifier)
 }
 
 protected trait NamedModel[T <: NamedModel[T]] extends Model

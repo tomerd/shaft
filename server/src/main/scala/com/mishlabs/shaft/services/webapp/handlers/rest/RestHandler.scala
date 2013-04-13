@@ -28,28 +28,22 @@ import config._
 import routes._
 import util._
 
-/*
-case class RestConfig(path:String)
-{
-	override def toString() = "path=%s".format(path)
-}
-*/
-
 object RestHandler extends WebappHandler
 {
 	@Inject var repositoryService:RepositoryService = null
   
-	lazy val routes = RestRoutes(Routes.all)
+	lazy val routes = RestRoutes(Routes.routes)
 	
-	/*def getServlet(config:Any):ServletInfo = config match 
+	/*def getServlet(config:Option[Any]):ServletInfo = config match 
 	{
-	  	case config:RestConfig => ServletInfo(Map.empty[String,String], new RestServlet)
+	  	case Some(config:RestConfig) => ServletInfo(Map.empty[String,String], new RestServlet)
 	  	case _ => throw new Exception("invalid configuration, expected RestConfig")
 	}*/
 	
-	def getServlet(config:Any) = ServletInfo(Map.empty[String,String], new RestServlet)
+	//def getServlet(config:Option[Any]) = ServletInfo(Map.empty[String,String], new RestServlet)
+	def getServlet(config:Option[Any]) = new RestServlet -> Map.empty[String, String]
 	
-	private class RestServlet extends HttpServlet with Logger
+	protected [webapp] class RestServlet extends HttpServlet with Logger
 	{
 		import javax.servlet.http.HttpServletRequest;
 	  	import javax.servlet.http.HttpServletResponse;

@@ -56,7 +56,7 @@ protected object Views
 	private val DEFAULT_VIEW_NAME = "default"
 		
 	private val coreExclude = List("wait", "notify", "notifyAll", "hashCode", "getClass", "toString") 
-	//private val	elementExclude = List("createdBy", "createdOn", "modifiedBy", "modifiedOn")
+	//private val	elementExclude = List("createdBy", "createdAt", "modifiedBy", "modifiedAt")
 	private val defaultExclude = coreExclude /*++ elementExclude*/
 	
 	private val views = mutable.HashMap[Class[_ <: Model], mutable.HashMap[String, View]]()

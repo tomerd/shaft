@@ -14,7 +14,7 @@ import com.mishlabs.shaft.services.webapp.handlers.WebappHandler
 
 case class LoggerConfig(level:String, fileSize:Int, maxFiles:Int)
 {
-	override def toString() = ("level=%s, fileSize=%s, maxFiles=%s").format(level, fileSize, maxFiles) 		
+	override def toString() = "level=%s, fileSize=%s, maxFiles=%s".format(level, fileSize, maxFiles) 		
 }
 
 class LoggerConfigBuilder extends Config[LoggerConfig]
@@ -28,106 +28,56 @@ class LoggerConfigBuilder extends Config[LoggerConfig]
 
 trait DataStoreConfig
 
-case class RepositoryConfig(handler:Repository, dataStores:List[DataStoreConfig]) 
+case class RepositoryConfig(dataStores:List[DataStoreConfig]) 
 {
-	override def toString() = ("handler=[%s], configs=%s").format(handler, dataStores.map( c => "[%s %s]".format(c.getClass.getSimpleName, c.toString) )) 		
+	override def toString() = "\n\tdataStores=%s".format(dataStores.map( c => "\n\t\t[%s] %s".format(c.getClass.getSimpleName, c.toString) )) 		
 }
 
 class RepositoryConfigBuilder extends Config[RepositoryConfig]
 {
-	var handler:Repository = null
 	var dataStores:List[DataStoreConfig] = null
 
-	def apply() = RepositoryConfig(handler, dataStores)
+	def apply() = RepositoryConfig(dataStores)
 }
-
-
-/*
-case class WebAppConfig(enabled:Boolean, path:String, client:WebClientConfig) 
-{
-	override def toString() = ("enabled=%s, path=%s").format(enabled, path) 		
-}
-
-class WebAppConfigBuilder extends Config[WebAppConfig]
-{
-	var enabled:Boolean = false
-	var path:String = null
-	var client:WebClientConfig = null
-
-	def apply() = WebAppConfig(enabled, path, client)
-}
-*/
-
-/*
-case class WebClientConfig
-{
-}
-*/
-
-/*
-case class CommunicationConfig(agents:List[InternalCommunicationConfig])
-{
-	override def toString() = agents.map("[" + _.toString + "]").reduceLeft(_ + "," + _) 
-}
-
-class CommunicationConfigBuilder extends Config[CommunicationConfig]
-{
-	var agents:List[InternalCommunicationConfig] = null
-
-	def apply() = CommunicationConfig(agents)
-}
-
-trait InternalCommunicationConfig
-{
-}
-*/
 
 trait WebServerConfig
 
 case class JettyConfig(path:String, host:String, port:Int, sslPort:Int, keystoreFile:String, keystorePassword:String) extends WebServerConfig
 {
-	override def toString() = ("path=%s, host=%s, port=%s, sslPort=%s, keystoreFile=%s").format(path, host, port, sslPort, keystoreFile)
+	override def toString() = "path=%s, host=%s, port=%s, sslPort=%s, keystoreFile=%s".format(path, host, port, sslPort, keystoreFile)
 }
 
+/*
 trait WebappHandlerConfig
 {
 	var handler:WebappHandler
 	var path:String
 	var config:Any
 }
+*/
 
-case class WebappConfig(embeddedServer:Option[WebServerConfig], restPath:String, handlers:List[WebappHandlerConfig]) 
+case class WebappConfig(restPath:String, /*handlers:List[WebappHandlerConfig],*/ embeddedServer:Option[WebServerConfig]) 
 {
-	override def toString() = ("embeddedServer=[%s], restPath=%s, handlers=%s").format(embeddedServer, restPath, handlers.map( h => "[%s %s]".format(h.getClass.getSimpleName, h.toString) ))
+	/*override def toString() = "\n\trestPath=%s\n\thandlers=%s\n\tembeddedServer=%s".format(	restPath, 
+																							handlers.map( h => "\n\t\t[%s] %s".format(h.getClass.getSimpleName, h.toString) ), 
+																							embeddedServer )*/
+	override def toString() = "\n\trestPath=%s\n\tembeddedServer=%s".format(	restPath,  
+																				embeddedServer )  
 }
 
 class WebAppConfigBuilder extends Config[WebappConfig]
-{
-	var enbeddedWebServer:Option[WebServerConfig] = Some(JettyConfig("/", "127.0.0.1", 8080, 8443, "shaft.pkcs12", "shaft"))
+{	
 	var restPath = "rest"
-	var handlers = List.empty[WebappHandlerConfig]
+	//var handlers = List.empty[WebappHandlerConfig]
+	var enbeddedWebServer:Option[WebServerConfig] = Some(JettyConfig("/", "127.0.0.1", 8080, 8443, "shaft.pkcs12", "shaft"))
 	
-	def apply() = WebappConfig(enbeddedWebServer, restPath, handlers)
+	def apply() = WebappConfig(restPath, /*handlers,*/ enbeddedWebServer)
 }
-
-// rollup
-/*
-protected final object ShaftConfig
-{
-	def apply(configurator:ShaftServerConfigurator[_,_]):ShaftConfig = 
-	{
-		new ShaftConfig(configurator.storage(), 
-						configurator.web(),
-						configurator.rest(),
-						configurator.bayeux())
-	}
-}
-*/
 
 protected final case class ShaftConfig(	repository:RepositoryConfig, 
 										webapp:WebappConfig)
 {
-	override def toString() = ("repository=[%s]\nwebapp=[%s]").format(repository, webapp)		
+	override def toString() = "repository%s\nwebapp%s".format(repository, webapp)		
 }
 
 protected abstract class ShaftServerConfiguration(val shaftConfig:ShaftConfig)

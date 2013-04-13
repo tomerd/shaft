@@ -11,13 +11,13 @@ import lib.messaging._
 
 import util._
 
-case class ServletInfo(initParams:Map[String,String], servlet:Servlet)
+//case class ServletInfo(initParams:Map[String,String], servlet:Servlet)
 
 trait WebappHandler 
 {	
 	@Inject var bus:MessageBus = null
   
-	def getServlet(config:Any):ServletInfo
+	def getServlet(config:Option[Any]):Pair[Servlet, Map[String, String]]
 	
 	protected final def reportError(description:String, cause:Throwable)
 	{	

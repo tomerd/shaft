@@ -86,7 +86,7 @@ trait Logger
   	def info(msg: => AnyRef, marker: Marker):String = { if (isInfoEnabled) logger.info(marker,String.valueOf(msg)); String.valueOf(msg) }
   	def info(msg: => AnyRef, t: Throwable, marker: Marker):String = { if (isInfoEnabled) logger.info(marker,String.valueOf(msg), t); String.valueOf(msg) }
   	def isInfoEnabled = logger.isInfoEnabled
-  
+  	
   	def warn(msg: => AnyRef):String = { if (isWarnEnabled) logger.warn(String.valueOf(msg)); String.valueOf(msg) }
   	def warn(msg: => AnyRef, t: Throwable):String = { if (isWarnEnabled) logger.warn(String.valueOf(msg), t); String.valueOf(msg) }
   	def warn(msg: => AnyRef, marker: Marker):String = { if (isWarnEnabled) logger.warn(marker,String.valueOf(msg)); String.valueOf(msg) }

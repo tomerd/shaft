@@ -2,15 +2,7 @@ package com.mishlabs.shaft
 
 import java.util.Date
 
-//import java.util.concurrent.CountDownLatch
-
-//import scala.collection._
-
 import scala.actors.Actor
-//import scala.actors.Actor._
-
-//import net.liftweb.common._
-//import net.liftweb.util._
 
 import com.twitter.ostrich._
 import com.twitter.ostrich.admin.RuntimeEnvironment
@@ -18,6 +10,7 @@ import com.twitter.ostrich.admin.Service
 import com.twitter.ostrich.admin.ServiceTracker
 
 import lib.messaging._
+
 import services.ServiceManager
 
 import config._
@@ -42,8 +35,8 @@ trait ShaftServerLauncher[T <: ShaftServer[_]] extends Logger
 		catch 
 		{
 			case e =>
-			{				
-				error("error during startup: " + ExceptionUtil.describe(e))
+			{
+				error("error during startup", e)
 				System.exit(1)
 			}
 		}					
@@ -70,10 +63,13 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 
 	final def uptime = System.currentTimeMillis - startTime
 	
+	val name:String
+		
+	private var startCallback:Option[() => Unit] = None
+	private var shutdownCallback:Option[() => Unit] = None
+
 	private val bus = new MessageBus()  	
 	//private var shuttingDown = false
-	
-	val name:String
 		
 	final override def start()
 	{
@@ -84,12 +80,21 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 		
 		messageHandler.start		
 		bus.subscribe(classOf[Error], messageHandler)
-		
-		loadRoutes()		
+				
+		loadRoutes
 				
 		ServiceManager.startup(bus, config.shaftConfig)
+		
+		if (startCallback.isDefined)
+		{
+			info("--------------------------------------------------------------------------------------------------------")
+			info("custom startup")
+			info("--------------------------------------------------------------------------------------------------------")
+			startCallback.get.apply
+		}
 
-		info("ready for action")
+		info("--------------------------------------------------------------------------------------------------------")
+		info("%s server is ready for action".format(name))
 		info("--------------------------------------------------------------------------------------------------------")
 	}
 	
@@ -106,8 +111,16 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 				
 		ServiceManager.shutdown
 		
+		if (shutdownCallback.isDefined) 
+		{
+			info("--------------------------------------------------------------------------------------------------------")
+			info("custom shutdown")
+			info("--------------------------------------------------------------------------------------------------------")
+			shutdownCallback.get.apply
+		}
+		
 		// not sure this is required, doing it to be on the safe side. need to look further into it		
-		bus.clear		
+		bus.clear
 		
 		info("goodbye")
 		info("--------------------------------------------------------------------------------------------------------")
@@ -132,20 +145,30 @@ protected abstract class ShaftServer[C <: ShaftServerConfiguration](config:C) ex
 	{
 		//TODO: implement this for real 
 	}
+			
+	protected def onStart(calllback:() => Unit)
+	{
+		startCallback = Some(calllback)
+	}
 	
-	private def loadRoutes()
+	protected def onShutdown(calllback:() => Unit)
+	{
+		shutdownCallback = Some(calllback)
+	}
+	
+	private def loadRoutes
 	{		
 		val routes = try 
 		{
-			val clasName = "%s.config.Routes".format(this.getClass.getPackage.getName)
-			val clazz = Class.forName(clasName)
-			val constructor = clazz.getConstructor()		
-			clazz.getConstructor().newInstance()
+			val className = "%s.config.Routes".format(this.getClass.getPackage.getName)
+			val klass = Class.forName(className)
+			val constructor = klass.getConstructor()		
+			klass.getConstructor().newInstance()
 		}
 		catch
 		{
 			case e:ClassNotFoundException => throw new Exception("routes not found, expected at config/Routes")
-			case _ => throw new Exception("routes class was found, but could not be instantiated. make sure it has a simple constructor")
+			case _ => throw new Exception("routes implementation was found, but could not be instantiated. make sure it has a simple constructor")
 		}
 	}
 	

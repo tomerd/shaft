@@ -185,8 +185,8 @@ protected object ViewBuilder extends Logger
 		
 		val view = try 
 		{
-			val clazz = Class.forName(viewClassName)
-			clazz.getConstructor().newInstance()
+			val klass = Class.forName(viewClassName)
+			klass.getConstructor().newInstance()
 		}
 		catch
 		{

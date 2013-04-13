@@ -13,25 +13,15 @@
 	<properties>
 		<scala.version>2.9.1</scala.version>		
 		<ostrich.version>4.10.2</ostrich.version>
-		<!-- unfiltered.version>0.5.3</unfiltered.version-->
-				
-		<lift.version>2.4</lift.version>
-		<!--log4j.version>1.2.16</log4j.version-->
+		<guice.version>3.0</guice.version>
 		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>
-		<!--  db -->
-		<!--h2.version>1.2.134</h2.version>
-		<mysql.version>5.1.13</mysql.version-->
+		<!-- unfiltered.version>0.5.3</unfiltered.version-->
+		<lift.version>2.4</lift.version>
+		<!--log4j.version>1.2.16</log4j.version-->		
 		<!--naggati.version>2.2.1</naggati.version-->
 		<!--vysper.version>0.7</vysper.version-->
 		<!--socketio-java.version>2.0.0</socketio-java.version-->
-		<!--cometd.version>2.3.1</cometd.version-->
-		<cometd.version>2.4.0.RC2</cometd.version>		
-		<!--jetty.version>7.4.5.v20110725</jetty.version-->		
-		<!--jetty.version>7.5.3.v20111011</jetty.version-->
-		<!--jetty.version>7.5.4.v20111024</jetty.version-->
-		<!--jetty.version>7.6.0.RC2</jetty.version-->
-		<jetty.version>8.1.10.v20130312</jetty.version>
-		<guice.version>3.0</guice.version>
+		<jetty.version>8.1.10.v20130312</jetty.version>		
 		<commons-fileupload.version>1.2.2</commons-fileupload.version>
 		<!--commons-math.version>2.2</commons-math.version-->
 		<!-- common plugin settings -->
@@ -75,13 +65,22 @@
 		</pluginRepository>
 	</pluginRepositories>
 	
-	<dependencies>		
-		<!-- ostrich -->
+	<dependencies>
 		<dependency>				
   			<groupId>com.twitter</groupId>
   			<artifactId>ostrich_${scala.version}</artifactId>
   			<version>${ostrich.version}</version>
 		</dependency>
+		<dependency>
+		  <groupId>com.google.inject</groupId>
+		  <artifactId>guice</artifactId>
+		  <version>${guice.version}</version>
+		</dependency>
+		<dependency> 
+			<groupId>org.slf4j</groupId> 
+			<artifactId>slf4j-log4j12</artifactId> 
+			<version>${slf4j-log4j.version}</version> 
+		</dependency>		
 		<!-- unfiltered -->
 		<!-- dependency>				
   			<groupId>net.databinder</groupId>
@@ -99,24 +98,6 @@
 		    <artifactId>lift-util_${scala.version}</artifactId>
 		    <version>${lift.version}</version>
 		</dependency>		
-		<!-- logging -->
-		<dependency> 
-			<groupId>org.slf4j</groupId> 
-			<artifactId>slf4j-log4j12</artifactId> 
-			<version>${slf4j-log4j.version}</version> 
-		</dependency>
-		<!-- db -->
-		<!--dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>${h2.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-		  <groupId>mysql</groupId>
-		  <artifactId>mysql-connector-java</artifactId>
-		  <version>${mysql.version}</version>
-		</dependency-->		
 		<!-- naggati -->		
 		<!--dependency>
 			<groupId>com.twitter</groupId>
@@ -150,22 +131,6 @@
 		    <artifactId>socketio-core</artifactId>
 		    <version>${socketio-java.version}</version>
 		</dependency-->
-		<!-- cometd  -->
-		<dependency>
-		    <groupId>org.cometd.java</groupId>
-		    <artifactId>bayeux-api</artifactId>
-		    <version>${cometd.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.cometd.java</groupId>
-		    <artifactId>cometd-java-server</artifactId>
-		    <version>${cometd.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.cometd.java</groupId>
-		    <artifactId>cometd-websocket-jetty</artifactId>
-		    <version>${cometd.version}</version>
-		</dependency>
 		<!-- FIXME: need a way to explode this into webapp/scripts/cometd when building or packaging -->
 		<!--dependency>
             <groupId>org.cometd.javascript</groupId>
@@ -204,12 +169,6 @@
 		    <artifactId>jetty-rewrite</artifactId>
 		    <version>${jetty.version}</version>
 		</dependency-->	
-		<!--  guice -->
-		<dependency>
-		  <groupId>com.google.inject</groupId>
-		  <artifactId>guice</artifactId>
-		  <version>${guice.version}</version>
-		</dependency>
 		<!-- commons-fileupload -->
 		<dependency>
 			<groupId>commons-fileupload</groupId>
