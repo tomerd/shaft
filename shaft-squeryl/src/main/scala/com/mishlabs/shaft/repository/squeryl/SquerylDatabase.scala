@@ -27,7 +27,7 @@ abstract trait SquerylDatabase extends DataStore
 		SessionFactory.concreteFactory = Some(() => 
 		{
 			if (null == squerylConfig.adapter) throw new Exception("unknown squeryl adpater")
-			val adapter = squerylConfig.adapter.newInstance
+			val adapter = squerylConfig.adapter.klass.newInstance
 			val connection = java.sql.DriverManager.getConnection(squerylConfig.url, squerylConfig.user, squerylConfig.password)
 			val session = Session.create(connection, adapter)
 			session.setLogger((sql) => SqlLogger.debug(sql) )

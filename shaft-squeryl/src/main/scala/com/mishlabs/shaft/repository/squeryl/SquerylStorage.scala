@@ -17,35 +17,7 @@ import dao.Dao
 protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao/*[D]*/] extends Storage[M]
 {
 	val table:Table[D]
-	
-	/*
-	def find(condition:Condition):Option[M] =
-	{
-		inTransaction
-		{
-			val result = from(table)(condition)
-			result.size match
-			{
-				case 0 => None
-				case 1 => Some(result.single)
-				case count => throw new Exception("too many records matched this criteria, expected 1 fond %d".format(count))
-			}
-		}
-	}
-	
-	def findAll(condition:Option[Condition]):Iterable[M] =
-	{
-		inTransaction
-		{
-			condition match
-			{
-				case Some(condition) => from(table)(condition)
-				case _ => throw new Exception("implment this") //from(table)
-			}		
-		}
-	}
-	*/
-	
+		
 	def find(id:Long):Option[M] = find ( r => where(r.id === id) select(r) )
 		
 	def findAll():Iterable[M] = findAll( r => select(r) )
@@ -62,6 +34,8 @@ protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao/*[D]*
 	}
 	
 	def findAll(condition:Function1[D,QueryYield[D]]):Iterable[M] = inTransaction { from(table)(condition) }
+	
+	def save(entity:M):M = if (entity.id < 0) create(entity) else update(entity)
 	
 	def create(entity:M):M = inTransaction { table.insert(entity); entity }
 	
