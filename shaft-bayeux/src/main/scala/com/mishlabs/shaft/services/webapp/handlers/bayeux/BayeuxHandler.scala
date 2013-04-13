@@ -5,24 +5,16 @@ package handlers
 package bayeux
 
 import scala.collection._
+
 import org.cometd.bayeux.Message
 import org.cometd.bayeux.server.BayeuxServer
 import org.cometd.bayeux.server.ServerSession
 import org.cometd.server.AbstractService
 import org.cometd.server.CometdServlet
 import com.google.inject.Inject
+
 import config._
 import util._
-import com.mishlabs.shaft.services.webapp.handlers.WebappHandler
-
-case class BayeuxConfig(path:String, requestChannel:String, responseChannel:String)
-{
-	//var path:String = "/bayeux"
-	//var requestChannel:String = "/request"
-	//var responseChannel:String = "/response"
-	
-	override def toString() = "path=%s, requestChannel=%s, responseChannel=%s".format(path, requestChannel, responseChannel)
-}
 
 object BayeuxHandler extends WebappHandler with Logger
 {	
@@ -128,7 +120,7 @@ object BayeuxHandler extends WebappHandler with Logger
 				val json = JsonParser.parse(message.getJSON)
 				val payload = (json \ "data").extract[JObject]
 					
-				ElementJsonCodec.decode(payload) match 
+				ShfatJsonCodec.decode(payload) match 
 				{				  	
 				  	case request:KeepAliveRequest => // do nothing	
 				  	case request:SubscribeRequest => pubsub.subscribe(request.channel, communicator)
@@ -159,7 +151,7 @@ object BayeuxHandler extends WebappHandler with Logger
 		{					
 			try 
 			{					
-				session.deliver(session, config.responseChannel + "/" + response.kind, ElementJsonCodec.encode(response), null);
+				session.deliver(session, config.responseChannel + "/" + response.kind, ShfatJsonCodec.encode(response), null);
 			} 
 			catch  
 			{

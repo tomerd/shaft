@@ -1,6 +1,7 @@
 package com.mishlabs.shaft
 package services.webapp
 package handlers
+package bayeux
 
 import scala.actors.Actor
 import scala.collection._
@@ -80,7 +81,8 @@ protected trait Communicator
 	def send(message:Response)
 }
 
-protected abstract class Packet
+
+protected trait Packet
 
 protected abstract class Request extends Packet
 protected case class KeepAliveRequest extends Request
@@ -89,7 +91,7 @@ protected case class UnsubscribeRequest(channel:String) extends Request
 
 protected abstract class Response(val kind:String) extends Packet
 
-protected object ElementJsonCodec extends Logger
+protected object ShfatJsonCodec extends Logger
 {
 	import net.liftweb.json._
 	import net.liftweb.json.JsonAST._
