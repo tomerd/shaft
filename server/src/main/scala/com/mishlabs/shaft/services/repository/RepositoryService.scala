@@ -12,7 +12,7 @@ trait RepositoryService extends Service
 	val repository:Option[Repository]
 }
 
-class ShaftRepositoryService extends ShaftService with RepositoryService
+protected [services] class ShaftRepositoryService extends ShaftService with RepositoryService
 {
 	@Inject var config:RepositoryConfig = null
 		

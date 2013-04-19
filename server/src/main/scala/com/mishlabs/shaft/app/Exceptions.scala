@@ -1,6 +1,5 @@
 package com.mishlabs.shaft
-package app.controllers
-package common
+package app
 
 protected case class PermissionDeniedException(reason:String) extends Exception(reason)
 protected case class AccessDeniedException extends Exception

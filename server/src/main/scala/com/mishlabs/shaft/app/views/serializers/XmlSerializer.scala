@@ -1,50 +1,53 @@
 package com.mishlabs.shaft
-package app.controllers
-package common
+package app
+package views
+package serializers
 
 import java.util.Date
 import java.sql.Timestamp
-	
+
 import scala.collection._
 import scala.xml._
 
-import app.model.Model
-import app.views._
+import model.Model
 
 import util._
 	
-protected object ViewBuilder extends Logger
+object XmlSerializer extends ViewEngine with Logger
 {
 	private val DEFAULT_VIEW_NAME = "default"
-	// FIXME: read formats from configuration file
-	private val dateFormat = "dd/MMM/yyyy"
+	private val dateFormat = ISO8601.FORMAT.split("'T'")(0)
 	private val dateFormatter = new java.text.SimpleDateFormat(dateFormat)
-	private val timestampFormat = "%s HH:mm:ss".format(dateFormat)	
-	private val timestampFormatter = new java.text.SimpleDateFormat(timestampFormat)
+	//private val timestampFormat = "%s HH:mm:ss".format(dateFormat)	
+	private val timestampFormatter = new java.text.SimpleDateFormat(ISO8601.FORMAT) //timestampFormat)
 	
-	def build(data:AnyRef, view:TemplatedView):Elem = //Option[Elem] =
+	def render(data:AnyRef, viewName:Option[String]):Elem =
 	{
-		// FIXME: implement custom view using a template engine such as scalate
-		throw new Exception("not implmented")
+		objectToXml(data, None, viewName)
 	}
-		
-	def build(data:Iterable[AnyRef], nodeName:String):Elem = //Option[Elem] =
+	
+	def render(data:AnyRef, view:View):Elem =
+	{
+		objectToXml(data, None, Some(view))
+	}
+	
+	def render(data:Iterable[AnyRef], nodeName:String):Elem =
 	{
 		// TODO: this should not be used with model objects need to validate it here		
 		objectToXml(data, Some(nodeName), None)
 	}
 
-	def build(entity:Model, viewName:Option[String]):Elem = //Option[Elem] = 
+	def render(entity:Model, viewName:Option[String]):Elem = 
 	{		
 		objectToXml(entity, None, viewName)
 	}
 	
-	def build(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Elem = //Option[Elem] = 
+	def render(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Elem = //Option[Elem] = 
 	{		
 		objectToXml(entities, Some(nodeName.getOrElse("list")), viewName)
 	}
 	
-	private def objectToXml(data:Any, nodeName1:Option[String], viewName:Option[String]):Elem = //Option[Elem] =
+	private def objectToXml(data:Any, nodeName1:Option[String], viewDef:Option[Any] /*viewName:Option[String]*/):Elem = //Option[Elem] =
 	{
 		//val nodeName:String = StringHelpers.snakify(rootNodeName)
 		//info("processing " + nodeName + " value: " + value)
@@ -53,10 +56,10 @@ protected object ViewBuilder extends Logger
 		data match
 		{
 			case null => /*Some(*/Elem(null, nodeName, Null, TopScope)//)
-			case option:Option[_] => objectToXml(option.getOrElse(null), Some(nodeName), viewName)
-			case model:Model => modelToXml(model, nodeName, viewName)			
-			case tuple:Tuple2[String, Any] => tupleToXml(tuple, nodeName, viewName)
-			case tuple:Tuple3[String, Any, Any] => tupleToXml(tuple, nodeName, viewName)
+			case option:Option[_] => objectToXml(option.getOrElse(null), Some(nodeName), viewDef)
+			case model:Model => modelToXml(model, nodeName, viewDef)			
+			case tuple:Tuple2[String, Any] => tupleToXml(tuple, nodeName, viewDef)
+			case tuple:Tuple3[String, Any, Any] => tupleToXml(tuple, nodeName, viewDef)
 			case timestamp:Timestamp => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTimestamp(timestamp)))//)
 			case date:Date => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatDate(date)))//) 
 			case iterable:Iterable[_] => 
@@ -72,7 +75,7 @@ protected object ViewBuilder extends Logger
 						case value:Timestamp => timestampArrayItemToXml(value)
 						case value:Date => dateArrayItemToXml(value)
 						case value:Any if isSimple(value) => simpleArrayItemToXml(value)						
-						case _ => objectToXml(iterator, None, viewName)					
+						case _ => objectToXml(iterator, None, viewDef)					
 					}
 					/*(if (child.isDefined)*/ children += child //.get
 				})
@@ -110,87 +113,85 @@ protected object ViewBuilder extends Logger
 	private def formatTimestamp(timestamp:Timestamp):String = if (null != timestamp) timestampFormatter.format(timestamp) else ""
 	private def formatDate(date:Date):String = if (null != date) dateFormatter.format(date) else ""
 	
-	private def tupleToXml(tuple:Product, nodeName:String, viewName:Option[String]):Elem =
+	private def tupleToXml(tuple:Product, nodeName:String, view:Option[Any]):Elem =
 	{
 		var children = mutable.ListBuffer[Node]()
 		children += Elem(null, "key", Null, TopScope, Text(tuple.productElement(0).toString))
 		for (index <- 1 until tuple.productArity)
 		{
 			val productElement = tuple.productElement(index)
-			val grandChild = if (isSimple(productElement)) Text(productElement.toString) else objectToXml(productElement, None, viewName)
+			val grandChild = if (isSimple(productElement)) Text(productElement.toString) else objectToXml(productElement, None, view)
 			children += Elem(null, "value%s".format(if(index > 1) index else ""), Null, TopScope, grandChild)			
 		}
 		/*Some(*/Elem(null, nodeName, Null, TopScope, children:_*)//)
 	}
 		
-	private def modelToXml(model:Model, nodeName:String, viewName:Option[String]):Elem = //Option[Elem] =
-	{		
+	private def modelToXml(model:Model, nodeName:String, viewDef:Option[Any]):Elem = //Option[Elem] =
+	{	
 		val modelName = StringHelpers.snakify(model.getClass.getSimpleName)
 		//val nodeName = nodeName1.getOrElse(modelName)
-		val directoryName = modelName //StringHelpers.pluralify(modelName)	
+		val directoryName = modelName //StringHelpers.pluralify(modelName)
 		
-		val view = viewName match 
+		val view = viewDef match
 		{
-			case Some(name) => findView(directoryName, name)
-			case None => findView(directoryName, DEFAULT_VIEW_NAME)
+		  	case Some(view:SerializerView) => view
+		  	case Some(name:String) => loadView(directoryName, name)
+		  	case None => loadView(directoryName, DEFAULT_VIEW_NAME)
+		  	case _ => throw new ViewException("unknown view definition " + viewDef)
 		}
 		
-		view match
-		{
-			case view:TemplatedView => build(model, view)
-			case view:FieldsView => 
+		val children = mutable.ListBuffer[Node]()
+		val methods = model.getClass.getMethods.filter( method => (0 == method.getParameterTypes.length)
+														&&
+														view.approve(method.getName)
+														&& 
+														!method.getReturnType.equals(model.getClass)
+														&& 
+														!method.getReturnType.equals(classOf[Unit]))
+		methods.foreach( method =>
+		{							
+			// FIXME: add support to specifying the child view name as part of the parent view definition 
+			// this means the view's definition will be more robust then a simple list of fields
+			val childView = None 
+				
+			val value = try
+			{								
+				method.invoke(model)							 							
+			}
+			catch
 			{
-				var children = mutable.ListBuffer[Node]()
-				model.getClass.getMethods.filter( 	method => (0 == method.getParameterTypes.length)
-													&&
-													view.approve(method.getName)
-													&& 
-													!method.getReturnType.equals(model.getClass)
-													&& 
-													!method.getReturnType.equals(classOf[Unit]))
-					.foreach( method =>
-					{							
-						// FIXME: add support to specifying the child view name as part of the parent view definition 
-						// this means the view's definition will be more robust then a simple list of fields
-						val childView = None 
-							
-						val value = try
-						{								
-							method.invoke(model)							 							
-						}
-						catch
-						{
-							//throw new ViewException("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)) )
-							case e => error("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e))) 
-						}
-						children += objectToXml(value, Some(StringHelpers.snakify(method.getName)), childView)
-						/*
-						objectToXml(value, StringHelpers.snakify(method.getName), childView) match
-						{
-							case Some(child) => children += child
-							case _ => // do nothing
-						}
-						*/						
-					})
-					/*Some(*/Elem(null, nodeName, Null, TopScope, children:_*)//)
-			}						
-			case _ => throw new ViewException("unknown view type " + view)
-		}	
+				//throw new ViewException("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e)) )
+				case e => error("failed generating %s's xml, exception thrown when evaluating '%s' attribute, %s".format(model.getClass.getSimpleName, method.getName, ExceptionUtil.describe(e))) 
+			}
+			children += objectToXml(value, Some(StringHelpers.snakify(method.getName)), childView)
+			/*
+			objectToXml(value, StringHelpers.snakify(method.getName), childView) match
+			{
+				case Some(child) => children += child
+				case _ => // do nothing
+			}
+			*/						
+		})
+		Elem(null, nodeName, Null, TopScope, children:_*)
 	}
 	
-	private def findView(directory:String, name:String):View =
-	{		
+	private def loadView(directory:String, name:String):SerializerView =
+	{
 		val packageName = ShaftServer.server.getClass.getPackage.getName
-		val viewClassName = "%s.app.views.%s.%s".format(packageName, directory, StringHelpers.camelify(name))
-		
+		val className = "%s.app.views.%s.%s".format(packageName, directory, StringHelpers.camelify(name))
+		loadView(className)
+	}
+	
+	private def loadView(className:String):SerializerView =
+	{		
 		val view = try 
 		{
-			val klass = Class.forName(viewClassName)
+			val klass = Class.forName(className)
 			klass.getConstructor().newInstance()
 		}
 		catch
 		{
-			case e:ClassNotFoundException => if (DEFAULT_VIEW_NAME == name) new BlackListView() else throw new ViewException("view '%s' not found, expected at app/views/%s/%s".format(name, directory, StringHelpers.camelify(name)))
+			case e:ClassNotFoundException => if (DEFAULT_VIEW_NAME == className.substring(className.lastIndexOf("."))) new BlackList() else throw new ViewException("view not found, expected at %s".format(className))
 			case e:NoSuchMethodException => throw new ViewException("view '%s' was found, but could not be instantiated. make sure it has a simple constructor")
 			case e:SecurityException => throw new ViewException("view '%s' was found, but could not be instantiated due to access/security issue")
 			case e:IllegalAccessException => throw new ViewException("view '%s' was found, but could not be instantiated due to access/security issue")
@@ -203,8 +204,8 @@ protected object ViewBuilder extends Logger
 				
 		view match
 		{
-			case view:View => view
-			case _ => throw new ViewException("view '%s' was found but is not of expected type. make sure it extends 'View'")
+			case view:SerializerView => view
+			case _ => throw new ViewException("view '%s' was found but is not of expected type. make sure it extends 'SerializerView'")
 		}
 		
 	}

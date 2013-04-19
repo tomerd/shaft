@@ -24,37 +24,37 @@ object BayeuxHandler extends WebappHandler with Logger
 	
 	private var config:BayeuxConfig = null
 	
-	def getServlet(config:Any) =
+	def getServlet(config:Option[Any]) =
 	{
 		config match
 		{
-		  	case config:BayeuxConfig =>
+		  	case Some(config:BayeuxConfig) =>
 		    {		
 		    	this.config = config
-				//val context = new ServletContextHandler(ServletContextHandler.SESSIONS)
-				//context.setContextPath(config.path)
+				  //val context = new ServletContextHandler(ServletContextHandler.SESSIONS)
+				  //context.setContextPath(config.path)
 				
-				//val servlet = new CometdServlet()		
+				  //val servlet = new CometdServlet()
 			    //val servletHolder = new ServletHolder(servlet)
-				//servletHolder.setInitParameter("transports", "org.cometd.websocket.server.WebSocketTransport")
-				//servletHolder.setInitParameter("allowedTransports", "org.cometd.websocket.server.WebSocketTransport")
-				//servletHolder.setInitParameter("logLevel", getLogLevel().toString) 
+				  //servletHolder.setInitParameter("transports", "org.cometd.websocket.server.WebSocketTransport")
+				  //servletHolder.setInitParameter("allowedTransports", "org.cometd.websocket.server.WebSocketTransport")
+				  //servletHolder.setInitParameter("logLevel", getLogLevel().toString)
 			    //context.addServlet(servletHolder, "/*")
 		
-				//webService.registerHandler(context)
+				  //webService.registerHandler(context)
 				
-				//webService.onStart(()=>
+				  //webService.onStart(()=>
 			    //{
 					//service = new BayeuxService(servlet.getBayeux)		
 					//service.startup
 			    //})
 			    
-				val servlet:CometdServletWrapper = new CometdServletWrapper
-				servlet.onStart(() =>
+				  val servlet:CometdServletWrapper = new CometdServletWrapper
+				  servlet.onStart(() =>
 			    {
 			    	pubsub.startup			      
-					service = new BayeuxService(servlet.getBayeux)		
-					service.startup
+					  service = new BayeuxService(servlet.getBayeux)
+					  service.startup
 			    })
 			    
 			    servlet.onEnd(() => 
@@ -65,10 +65,10 @@ object BayeuxHandler extends WebappHandler with Logger
 			    
 			    val initParams = mutable.HashMap[String, String]()
 			    initParams += "transports" -> "org.cometd.websocket.server.WebSocketTransport" 	    
-				initParams += "allowedTransports" -> "org.cometd.websocket.server.WebSocketTransport"
-				initParams += "logLevel" -> getLogLevel().toString	    
-				
-				ServletInfo(initParams, servlet)
+				  initParams += "allowedTransports" -> "org.cometd.websocket.server.WebSocketTransport"
+				  initParams += "logLevel" -> getLogLevel().toString
+
+          servlet -> initParams
 		    }
 		  	case _ => throw new Exception("invalid configuration, expected BayeuxConfig")
 		}
@@ -160,7 +160,7 @@ object BayeuxHandler extends WebappHandler with Logger
 		}
 	}
 	
-	private class CometdServletWrapper extends CometdServlet
+	protected [webapp] class CometdServletWrapper extends CometdServlet
 	{
 		var initCallback:Option[()=>Unit] = None
 		var destroyCallback:Option[()=>Unit] = None

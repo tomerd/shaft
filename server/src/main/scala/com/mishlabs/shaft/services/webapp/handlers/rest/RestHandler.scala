@@ -1,6 +1,5 @@
 package com.mishlabs.shaft
-package services
-package webapp
+package services.webapp
 package handlers
 package rest
 
@@ -19,10 +18,12 @@ import org.apache.commons.fileupload.FileItem
 
 import com.google.inject.{ Guice, Inject, Injector, Module, Binder }
 
-import repository.RepositoryService
+import services.repository.RepositoryService
+import repository.TransactionManager
 
-import app.controllers._
-import app.controllers.common._
+import app._
+import controllers._
+import controllers.common._
 
 import config._
 import routes._
@@ -280,7 +281,7 @@ object RestHandler extends WebappHandler
 					} 
 				}, 
 				// inject data services
-				if (repositoryService.repository.isDefined) repositoryService.repository.get.servicesInjectionModule else null).injectMembers(controller)
+				if (repositoryService.repository.isDefined) repositoryService.repository.get.storageInjectionModule else null).injectMembers(controller)
 						  	
 				// run filters
 		  		if (!controller.skipBeforeFilter.contains(methodName)) controller.beforeFilter(method)

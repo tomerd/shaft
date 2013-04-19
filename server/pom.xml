@@ -12,11 +12,12 @@
 	
 	<properties>
 		<scala.version>2.9.1</scala.version>		
-		<ostrich.version>4.10.2</ostrich.version>
+		<ostrich.version>4.10.6</ostrich.version>
 		<guice.version>3.0</guice.version>
-		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>
+		<!-- joda-time.version>2.2</joda-time.version -->
+		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>		
 		<!-- unfiltered.version>0.5.3</unfiltered.version-->
-		<lift.version>2.4</lift.version>
+		<lift.version>2.5-M4</lift.version>
 		<!--log4j.version>1.2.16</log4j.version-->		
 		<!--naggati.version>2.2.1</naggati.version-->
 		<!--vysper.version>0.7</vysper.version-->
@@ -76,11 +77,17 @@
 		  <artifactId>guice</artifactId>
 		  <version>${guice.version}</version>
 		</dependency>
+		<!-- dependency> 
+			<groupId>joda-time</groupId> 
+			<artifactId>joda-time</artifactId> 
+			<version>${joda-time.version}</version> 
+		</dependency -->
 		<dependency> 
 			<groupId>org.slf4j</groupId> 
 			<artifactId>slf4j-log4j12</artifactId> 
 			<version>${slf4j-log4j.version}</version> 
-		</dependency>		
+		</dependency>
+		
 		<!-- unfiltered -->
 		<!-- dependency>				
   			<groupId>net.databinder</groupId>
@@ -97,6 +104,13 @@
 		    <groupId>net.liftweb</groupId>
 		    <artifactId>lift-util_${scala.version}</artifactId>
 		    <version>${lift.version}</version>
+		    <!-- excluding old joda-time -->
+		    <!-- exclusions>
+		        <exclusion>  
+		          	<groupId>joda-time</groupId>
+		          	<artifactId>joda-time</artifactId>
+				</exclusion>
+			</exclusions -->
 		</dependency>		
 		<!-- naggati -->		
 		<!--dependency>
@@ -320,7 +334,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>org.simbit.shaft.ElementServer</mainClass>
+							<mainClass>com.mishlabs.shaft.ElementServer</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -331,7 +345,7 @@
 	                <archive>
 	                    <manifest>
               				<addClasspath>true</addClasspath>
-	                        <mainClass>org.simbit.shaft.ElementServer</mainClass>
+	                        <mainClass>com.mishlabs.shaft.ElementServer</mainClass>
 	                    </manifest>
 	                </archive>
 	                <descriptorRefs>

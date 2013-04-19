@@ -40,9 +40,8 @@ class RepositoryConfigBuilder extends Config[RepositoryConfig]
 	def apply() = RepositoryConfig(dataStores)
 }
 
-trait WebServerConfig
 
-case class JettyConfig(path:String, host:String, port:Int, sslPort:Int, keystoreFile:String, keystorePassword:String) extends WebServerConfig
+case class WebServerConfig(var path:String, var host:String, var port:Int, var sslPort:Int, var keystoreFile:String, var keystorePassword:String)
 {
 	override def toString() = "path=%s, host=%s, port=%s, sslPort=%s, keystoreFile=%s".format(path, host, port, sslPort, keystoreFile)
 }
@@ -69,9 +68,9 @@ class WebAppConfigBuilder extends Config[WebappConfig]
 {	
 	var restPath = "rest"
 	//var handlers = List.empty[WebappHandlerConfig]
-	var enbeddedWebServer:Option[WebServerConfig] = Some(JettyConfig("/", "127.0.0.1", 8080, 8443, "shaft.pkcs12", "shaft"))
+	var embeddedServer:Option[WebServerConfig] = Some(WebServerConfig("/", "127.0.0.1", 8080, 8443, "shaft.pkcs12", "shaft"))
 	
-	def apply() = WebappConfig(restPath, /*handlers,*/ enbeddedWebServer)
+	def apply() = WebappConfig(restPath, /*handlers,*/ embeddedServer)
 }
 
 protected final case class ShaftConfig(	repository:RepositoryConfig, 

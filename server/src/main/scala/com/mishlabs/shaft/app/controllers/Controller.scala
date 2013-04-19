@@ -8,18 +8,20 @@ import scala.xml._
 
 import com.google.inject.Inject
 
-import app.views.TemplatedView
+import repository.TransactionManager
+
 import app.model.Model
 
 import common._
 import util._
+import net.liftweb.json.JValue
 
 protected trait Controller
-{
+{	
+	@Inject protected var server:Server = null
+	@Inject protected var request:Request = null
+	@Inject protected var session:Session = null
 	@Inject private var transactionManager:TransactionManager = null
-	@Inject var server:Server = null
-	@Inject var request:Request = null
-	@Inject var session:Session = null
 	
 	// before API filters	
 	def beforeFilter(api:Method):Unit = Unit
@@ -31,14 +33,7 @@ protected trait Controller
 	// transactions
 	final protected def newTransaction[A](a: => A):A = transactionManager.newTransaction(a)
 	final protected def inTransaction[A](a: => A):A = transactionManager.inTransaction(a)
-	
-	// views	
-	protected def buildView(data:AnyRef, view:TemplatedView):Response = XmlResponse(ViewBuilder.build(data, view))
-	protected def buildView(data:Iterable[AnyRef], nodeName:String):Response = XmlResponse(ViewBuilder.build(data, nodeName))
-	protected def buildView(entity:Model, viewName:Option[String]):Response = XmlResponse(ViewBuilder.build(entity, viewName))	
-	protected def buildView(entities:Iterable[_ <: Model], viewName:Option[String]):Response = buildView(entities, None, viewName)
-	protected def buildView(entities:Iterable[_ <: Model], nodeName:Option[String], viewName:Option[String]):Response = XmlResponse(ViewBuilder.build(entities, nodeName, viewName)) 
-			
+				
 	// core APIs, to be overridden by sub classes
 	protected def list(view:Option[String]):Response = NotImplmentedResponse()
 	protected def show(id:Long, view:Option[String]):Response = NotImplmentedResponse()
@@ -46,11 +41,19 @@ protected trait Controller
 	protected def update(id:Long, view:Option[String]):Response = NotImplmentedResponse()
 	protected def destroy(id:Long):Response = NotImplmentedResponse()
 		
-	private implicit def optxml2response(optxml:Option[Elem]):Response = optxml match
+	/*
+	private implicit def optxml2response(opt:Option[Elem]):Response = opt match
 	{
 		case Some(xml) => XmlResponse(xml)
 		case None => EmptyResponse()
 	}
+	
+	private implicit def optjson2response(opt:Option[JValue]):Response = opt match
+	{
+		case Some(json) => JsonResponse(json)
+		case None => EmptyResponse()
+	}
+	*/
 	
 }
 

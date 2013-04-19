@@ -13,7 +13,7 @@ object PostgreSqlAdapter extends DatabaseAdapter(classOf[org.squeryl.adapters.Po
 
 case class SquerylConfig extends DataStoreConfig
 {
-	var adapter:DatabaseAdapter = null;
+	var adapter:DatabaseAdapter = null
 	var url:String = null
 	var user:String = null
 	var password:String = null

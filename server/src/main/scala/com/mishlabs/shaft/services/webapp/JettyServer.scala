@@ -3,6 +3,7 @@ package services
 package webapp
 
 import scala.collection._
+
 import javax.servlet.Filter
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
@@ -10,6 +11,7 @@ import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.FilterConfig
+
 import org.eclipse.jetty.server.{Server, Connector, Handler}
 import org.eclipse.jetty.server.handler.{ ContextHandler, HandlerList, ResourceHandler, DefaultHandler }
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -17,13 +19,15 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.servlet.FilterMapping
 import org.eclipse.jetty.servlet.FilterHolder
 import org.eclipse.jetty.webapp.WebAppContext
-import com.mishlabs.shaft.util._
-import com.mishlabs.shaft.config.JettyConfig
+
 import org.eclipse.jetty.server.nio.SelectChannelConnector
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector
 
+import com.mishlabs.shaft.config.WebServerConfig
 
-protected class JettyServer(config:JettyConfig) extends WebServer[JettyConfig](config) 
+import com.mishlabs.shaft.util._
+
+protected class JettyServer(config:WebServerConfig) extends WebServer[WebServerConfig](config) 
 {
 	private var server:Server = null
 	

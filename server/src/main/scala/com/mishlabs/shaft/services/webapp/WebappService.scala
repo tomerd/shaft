@@ -45,9 +45,9 @@ class ShaftWebappService extends ShaftService with WebappService
 		
 		config.embeddedServer match
 		{
-		  	case Some(jettyConfig:JettyConfig) =>
+		  	case Some(config:WebServerConfig) =>
 		  	{
-		  		val server:JettyServer = new JettyServer(jettyConfig)
+		  		val server:JettyServer = new JettyServer(config)
 		  		embeddedServer = Some(server)
 		  	}
 		  	case _ =>
