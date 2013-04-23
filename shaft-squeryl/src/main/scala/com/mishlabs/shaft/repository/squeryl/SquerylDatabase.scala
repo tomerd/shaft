@@ -3,20 +3,16 @@ package repository
 package squeryl
 
 import org.squeryl._
-import org.squeryl.dsl._
 import org.squeryl.PrimitiveTypeMode._
-//import org.squeryl.annotations.Column
 
 import config._
 import util._
-
-import dao._
  
-abstract trait SquerylDatabase extends DataStore
+trait SquerylDatabase extends DataStore
 {	
 	val schema:Schema
 	
-	final def initialize(config:DataStoreConfig) = 
+	final def initialize(config:DataStoreConfig)
 	{
 		val squerylConfig = config match
 		{
@@ -34,10 +30,10 @@ abstract trait SquerylDatabase extends DataStore
 			session
 		})
 		
-		this.schemify
+		this.schemify()
 	}
 	
-	private def schemify
+	private def schemify()
 	{
 		transaction
 		{			

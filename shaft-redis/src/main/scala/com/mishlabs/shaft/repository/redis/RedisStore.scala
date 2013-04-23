@@ -6,22 +6,23 @@ import com.redis._
 
 import config._
 
-abstract trait RedisStore extends DataStore 
+trait RedisStore extends DataStore
 {
+    private var config:Option[RedisConfig] = None
 	private var pool:Option[RedisClientPool] = None
 	
-	final def initialize(config:DataStoreConfig) = 
+	final def initialize(config:DataStoreConfig)
 	{
-		val redisConfig = config match
+        this.config = config match
 		{
-			case config:RedisConfig => config
-			case _ => throw new Exception("invaid configuration, expected RedisConfig") 
+			case config:RedisConfig => Some(config)
+			case _ => throw new Exception("invalid configuration, expected RedisConfig")
 		}
 		
-		pool = Some(new RedisClientPool(redisConfig.host, redisConfig.port))
+		pool = Some(new RedisClientPool(this.config.get.host, this.config.get.port))
 	}
 	
-	final def disconnect
+	final def disconnect()
 	{
 		if (pool.isDefined) pool.get.close
 	}
@@ -36,5 +37,11 @@ abstract trait RedisStore extends DataStore
 	{
 		if (!pool.isDefined) throw new Exception("redis was not correctly initialized")
 		pool.get.withClient(a)
-	}	
+	}
+
+    final def getDedicatedClient:RedisClient =
+    {
+        if (!config.isDefined) throw new Exception("redis was not correctly initialized")
+        new RedisClient(config.get.host, config.get.port)
+    }
 }

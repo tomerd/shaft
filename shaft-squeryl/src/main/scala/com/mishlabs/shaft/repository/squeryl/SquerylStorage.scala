@@ -14,7 +14,7 @@ import com.mishlabs.shaft.app.model.KeyedModel
 
 import dao.Dao
 
-protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao/*[D]*/] extends Storage[M]
+protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao] extends Storage[M]
 {
 	val table:Table[D]
 		
