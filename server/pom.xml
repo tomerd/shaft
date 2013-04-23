@@ -11,27 +11,21 @@
 	<inceptionYear>2012</inceptionYear>
 	
 	<properties>
-		<scala.version>2.9.1</scala.version>		
-		<ostrich.version>4.10.6</ostrich.version>
+		<scala.version>2.9.2</scala.version>
+		<ostrich.version>9.1.0</ostrich.version>
 		<guice.version>3.0</guice.version>
 		<!-- joda-time.version>2.2</joda-time.version -->
 		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>		
 		<!-- unfiltered.version>0.5.3</unfiltered.version-->
 		<lift.version>2.5-M4</lift.version>
-		<!--log4j.version>1.2.16</log4j.version-->		
 		<!--naggati.version>2.2.1</naggati.version-->
 		<!--vysper.version>0.7</vysper.version-->
 		<!--socketio-java.version>2.0.0</socketio-java.version-->
 		<jetty.version>8.1.10.v20130312</jetty.version>		
 		<commons-fileupload.version>1.2.2</commons-fileupload.version>
 		<!--commons-math.version>2.2</commons-math.version-->
-		<!-- common plugin settings -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
-		<!-- vscaladoc settings -->
-		<!--maven.scaladoc.vscaladocVersion>1.2-SNAPSHOT</maven.scaladoc.vscaladocVersion>
-		<vscaladoc.links.liftweb.pathsufix>scaladocs/</vscaladoc.links.liftweb.pathsufix>
-		<vscaladoc.links.liftweb.baseurl>http://scala-tools.org/mvnsites-snapshots/liftweb</vscaladoc.links.liftweb.baseurl-->
 	</properties>
 		
 	<repositories>
@@ -87,7 +81,6 @@
 			<artifactId>slf4j-log4j12</artifactId> 
 			<version>${slf4j-log4j.version}</version> 
 		</dependency>
-		
 		<!-- unfiltered -->
 		<!-- dependency>				
   			<groupId>net.databinder</groupId>
@@ -111,34 +104,7 @@
 		          	<artifactId>joda-time</artifactId>
 				</exclusion>
 			</exclusions -->
-		</dependency>		
-		<!-- naggati -->		
-		<!--dependency>
-			<groupId>com.twitter</groupId>
-			<artifactId>naggati</artifactId>
-			<version>${naggati.version}</version>
-		</dependency-->
-		<!-- vysper -->
-		<!--dependency>
-    		<groupId>org.apache.vysper</groupId>
-		    <artifactId>vysper-core</artifactId>
-		    <version>${vysper.version}</version>
 		</dependency>
-		<dependency>
-		    <groupId>org.apache.vysper.extensions</groupId>
-		    <artifactId>xep0124-xep0206-bosh</artifactId>
-		    <version>${vysper.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.vysper.extensions</groupId>
-		    <artifactId>vysper-websockets</artifactId>
-		    <version>${vysper.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.vysper.extensions</groupId>
-		    <artifactId>xep0060-pubsub</artifactId>
-		    <version>${vysper.version}</version>
-		</dependency-->
 		<!-- socket.io -->
 		<!--dependency>
 		    <groupId>org.scalatra.socketio-java</groupId>
@@ -253,154 +219,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.4.2</version>
-				<executions>
-					<execution>
-						<id>default-copy-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-						<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<overwrite>true</overwrite>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.basedir}/src</directory>
-									<includes>
-										<include>packageLinkDefs.properties</include>
-									</includes>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin-->
-			<!--plugin>
-				<groupId>net.sf.alchim</groupId>
-				<artifactId>yuicompressor-maven-plugin</artifactId>
-				<version>0.7.1</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compress</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<nosuffix>true</nosuffix>
-				</configuration>
-			</plugin-->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-eclipse-plugin</artifactId>
-				<version>2.8</version>				
-				<configuration>				        
-					<downloadSources>true</downloadSources>					
-					<additionalProjectnatures>
-						<projectnature>ch.epfl.lamp.sdt.core.scalanature</projectnature>
-					</additionalProjectnatures>
-					<additionalBuildcommands>
-						<buildcommand>ch.epfl.lamp.sdt.core.scalabuilder</buildcommand>
-					</additionalBuildcommands>
-					<classpathContainers>
-						<classpathContainer>ch.epfl.lamp.sdt.launching.SCALA_CONTAINER</classpathContainer>
-						<classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
-					</classpathContainers>
-				</configuration>
-			</plugin>
-			<!-- plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
-                <configuration>
-                    <overlays>
-                        <overlay>
-                            <groupId>org.cometd.javascript</groupId>
-                            <artifactId>cometd-javascript-jquery</artifactId>
-                        </overlay>
-                    </overlays>
-    				<webappDirectory></webappDirectory>                  
-                </configuration>
-            </plugin-->
-            <!--plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<mainClass>com.mishlabs.shaft.ElementServer</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin-->
-	        <!--plugin>
-	            <artifactId>maven-assembly-plugin</artifactId>
-	            <configuration>
-	                <archive>
-	                    <manifest>
-              				<addClasspath>true</addClasspath>
-	                        <mainClass>com.mishlabs.shaft.ElementServer</mainClass>
-	                    </manifest>
-	                </archive>
-	                <descriptorRefs>
-	                    <descriptorRef>jar-with-dependencies</descriptorRef>
-	                </descriptorRefs>
-	                <~~descriptors>
-						<descriptor>src/assemble/assembly.xml</descriptor>
-					</descriptors~~>
-	            </configuration>
-	            <executions>
-			      	<execution>
-			        	<phase>package</phase>
-			        	<goals>
-			          	<goal>single</goal>
-			        	</goals>
-			      	</execution>
-			    </executions>
-	        </plugin-->
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.scala-tools
-										</groupId>
-										<artifactId>
-											maven-scala-plugin
-										</artifactId>
-										<versionRange>
-											[2.14.1,)
-										</versionRange>
-										<goals>
-											<goal>testCompile</goal>
-											<goal>compile</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 
 	<reporting>
