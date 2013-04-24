@@ -31,18 +31,14 @@ file system and others.
 
 * dependency injection at the controller layer
 
-### shaft utilized the following open source libraries:
-...
-
 
 ****************************************************
 		   WORK IN PROGRESS
 	this project is still in incubation
 ****************************************************
 
-#### TODO
+### TODO
 * scaffolding
-* plugins architecture for view engine, rdbms data apater, jetty, other parts
-* session facrory or some other, better mechanisim for session managenment
-* integrate scalate
+* plugins architecture for web server
+* better mechanisim for session managenment
 * integrate unfiltered?
