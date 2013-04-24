@@ -42,3 +42,26 @@ file system and others.
 * plugins architecture for web server
 * better mechanisim for session managenment
 * integrate unfiltered?
+
+### license
+
+scala-xmpp, a scala based xmpp framework
+Copyright (C) 2012 mishlabs
+www.mishlabs.com
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+***************************************************************************************
+
+This project is work in progress. if you are interested in contributing, have comments
+or want to share how you are using it please touch base via github
+
+***************************************************************************************
