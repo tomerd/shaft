@@ -2,7 +2,7 @@
 
 shaft is a lightweight web application framework written in scala. It focuses on:
 * software developer's efficiency. along the lines of ruby on rails.
-* scalability and reliability. utilizing the scala programming language and the JVM
+* scalability and reliability. utilizing the scala programming language and the JVM.
 * freedom. shaft abstracts away common dependencies giving you the freedom of choosing the tools you prefer.
 
 do we need yet another web application framework? the truth is we don't. that said, shaft addresses some of the common challenges in 
@@ -14,7 +14,7 @@ i built it because i needed such framework and i believe others can find it usef
 ### shaft foundations
 
 * shaft based application are developed in scala (or java). using statically typed languages keeps things in order and boosts performance. 
-we all love dynamic languages, but they simply do not scale as well as statically types ones.  
+we all love dynamic languages, but they simply do not scale as well as their statically typed sisters.
 
 * light weight processes, message passing and immutable data. shaft utilizes scala's actors to achieve maximum scalability and reliability.
 
