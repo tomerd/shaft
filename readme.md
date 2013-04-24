@@ -1,6 +1,6 @@
 ****************************************************
-		   WORK IN PROGRESS
-	this project is still in incubation
+WORK IN PROGRESS
+this project is still in incubation
 ****************************************************
 
 ### about
