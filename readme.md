@@ -1,12 +1,12 @@
 ### about
 
-shaft is an open source web application framework written in scala. shaft focuses on:
+shaft is a lightweight web application framework written in scala. It focuses on:
 * software developer's efficiency. along the lines of ruby on rails.
 * scalability and reliability. utilizing the scala programming language and the JVM
 * freedom. shaft abstracts away common dependencies giving you the freedom of choosing the tools you prefer.
 
 do we need yet another web application framework? the truth is we don't. that said, shaft addresses some of the common challenges in 
-developing web application a different way. it provides freedom of choice while keeping things straight forward for the software developer. 
+developing web application in a different way. it provides freedom of choice while keeping things straight forward for the software developer. 
 shaft recognizes and utilizes good concepts found in other frameworks but strikes a different balance to achieve better results.
 
 i built it because i needed such framework and i believe others can find it useful as well.
