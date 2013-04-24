@@ -1,3 +1,8 @@
+****************************************************
+		   WORK IN PROGRESS
+	this project is still in incubation
+****************************************************
+
 ### about
 
 shaft is a lightweight web application framework written in scala. It focuses on:
@@ -30,12 +35,6 @@ file system and others.
 * shaft is data store agnostic.
 
 * dependency injection at the controller layer
-
-
-****************************************************
-		   WORK IN PROGRESS
-	this project is still in incubation
-****************************************************
 
 ### TODO
 * scaffolding
