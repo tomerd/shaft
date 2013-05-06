@@ -18,9 +18,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/scala" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
-    <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="shaft.server_2.9.1" />
+    <orderEntry type="module" module-name="shaft.server_2.9.2" />
     <orderEntry type="library" name="Maven: com.twitter:ostrich_2.9.2:9.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.scala-lang:scala-library:2.9.2" level="project" />
     <orderEntry type="library" name="Maven: com.twitter:util-core_2.9.2:6.1.0" level="project" />
@@ -34,7 +34,7 @@
     <orderEntry type="library" name="Maven: javax.inject:javax.inject:1" level="project" />
     <orderEntry type="library" name="Maven: aopalliance:aopalliance:1.0" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-log4j12:1.6.2" level="project" />
-    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.6.6" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.6.2" level="project" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.16" level="project" />
     <orderEntry type="library" name="Maven: net.liftweb:lift-json_2.9.2:2.5-M4" level="project" />
     <orderEntry type="library" name="Maven: org.specs2:specs2_2.9.2:1.12.3" level="project" />
@@ -52,9 +52,9 @@
     <orderEntry type="library" name="Maven: nu.validator.htmlparser:htmlparser:1.4" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-server:8.1.10.v20130312" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-continuation:8.1.10.v20130312" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-continuation:7.6.0.RC1" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-http:8.1.10.v20130312" level="project" />
-    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-io:8.1.10.v20130312" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-io:7.6.0.RC1" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-util:8.1.10.v20130312" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-servlet:8.1.10.v20130312" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-security:8.1.10.v20130312" level="project" />
@@ -62,9 +62,14 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-xml:8.1.10.v20130312" level="project" />
     <orderEntry type="library" name="Maven: commons-fileupload:commons-fileupload:1.2.2" level="project" />
     <orderEntry type="library" name="Maven: commons-io:commons-io:2.1" level="project" />
-    <orderEntry type="library" name="Maven: net.debasishg:redisclient_2.9.2:2.10" level="project" />
-    <orderEntry type="library" name="Maven: commons-pool:commons-pool:1.6" level="project" />
-    <orderEntry type="library" name="Maven: com.typesafe.akka:akka-actor:2.0.3" level="project" />
+    <orderEntry type="library" name="Maven: org.cometd.java:bayeux-api:2.4.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.cometd.java:cometd-java-server:2.4.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.cometd.java:cometd-java-common:2.4.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-jmx:7.6.0.RC1" level="project" />
+    <orderEntry type="library" name="Maven: org.cometd.java:cometd-websocket-jetty:2.4.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.cometd.java:cometd-java-client:2.4.0.RC2" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-client:7.6.0.RC1" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-websocket:7.6.0.RC1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.7" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.scala-tools.testing:specs_2.9.2:1.6.9" level="project" />
   </component>
