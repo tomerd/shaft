@@ -3,8 +3,9 @@ package app
 package views
 package serializers
 
-import java.util.Date
-import java.sql.Timestamp
+import org.joda.time.DateTime
+import org.joda.time.LocalDate
+import org.joda.time.LocalTime
 
 import scala.collection._
 import scala.xml._
@@ -12,14 +13,15 @@ import scala.xml._
 import model.Model
 
 import util._
-	
+
+
 object XmlSerializer extends ViewEngine with Logger
 {
 	private val DEFAULT_VIEW_NAME = "default"
-	private val dateFormat = ISO8601.FORMAT.split("'T'")(0)
-	private val dateFormatter = new java.text.SimpleDateFormat(dateFormat)
+	//private val dateFormat = ISO8601.FORMAT.split("'T'")(0)
+	//private val dateFormatter = new java.text.SimpleDateFormat(dateFormat)
 	//private val timestampFormat = "%s HH:mm:ss".format(dateFormat)	
-	private val timestampFormatter = new java.text.SimpleDateFormat(ISO8601.FORMAT) //timestampFormat)
+	//private val timestampFormatter = new java.text.SimpleDateFormat(ISO8601.FORMAT) //timestampFormat)
 	
 	def render(data:AnyRef, viewName:Option[String]):Elem =
 	{
@@ -60,8 +62,12 @@ object XmlSerializer extends ViewEngine with Logger
 			case model:Model => modelToXml(model, nodeName, viewDef)			
 			case tuple:Tuple2[String, Any] => tupleToXml(tuple, nodeName, viewDef)
 			case tuple:Tuple3[String, Any, Any] => tupleToXml(tuple, nodeName, viewDef)
-			case timestamp:Timestamp => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTimestamp(timestamp)))//)
-			case date:Date => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatDate(date)))//) 
+            case time:java.sql.Date => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatDate(new LocalDate(time))))//)
+            case time:java.sql.Time => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTime(new LocalTime(time))))//)
+            case timestamp:java.util.Date => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTimestamp(new DateTime(timestamp))))//)
+			case timestamp:DateTime => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTimestamp(timestamp)))//)
+			case date:LocalDate => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatDate(date)))//)
+            case time:LocalTime => /*Some(*/Elem(null, nodeName, Null, TopScope, Text(formatTime(time)))//)
 			case iterable:Iterable[_] => 
 			{
 				//info("seq of " + seq.size)
@@ -72,8 +78,12 @@ object XmlSerializer extends ViewEngine with Logger
 					{
 						// FIXME: find a nicer way to do this
 						//case model:Model => modelToXml(model, None, viewName)
-						case value:Timestamp => timestampArrayItemToXml(value)
-						case value:Date => dateArrayItemToXml(value)
+                        case value:java.sql.Date => dateArrayItemToXml(new LocalDate(value))
+                        case value:java.sql.Time => timeArrayItemToXml(new LocalTime(value))
+                        case value:java.util.Date => timestampArrayItemToXml(new DateTime(value))
+                        case value:DateTime => timestampArrayItemToXml(value)
+						case value:LocalDate => dateArrayItemToXml(value)
+                        case value:LocalTime => timeArrayItemToXml(value)
 						case value:Any if isSimple(value) => simpleArrayItemToXml(value)						
 						case _ => objectToXml(iterator, None, viewDef)					
 					}
@@ -92,7 +102,8 @@ object XmlSerializer extends ViewEngine with Logger
 		{
 			case v:String => true
 			case v:Boolean => true
-			case v:Integer => true
+            case v:Int => true
+            case v:Integer => true
 			case v:Short => true
 			case v:Long => true
 			case v:Float => true
@@ -103,15 +114,17 @@ object XmlSerializer extends ViewEngine with Logger
 	
 	private def simpleArrayItemToXml(value:Any) = stringArrayItemToXml(value.toString)
 	
-	private def timestampArrayItemToXml(timestamp:Timestamp) = stringArrayItemToXml(formatTimestamp(timestamp))
-	private def dateArrayItemToXml(date:Date) = stringArrayItemToXml(formatDate(date))
+	private def timestampArrayItemToXml(timestamp:DateTime) = stringArrayItemToXml(formatTimestamp(timestamp))
+	private def dateArrayItemToXml(date:LocalDate) = stringArrayItemToXml(formatDate(date))
+    private def timeArrayItemToXml(time:LocalTime) = stringArrayItemToXml(formatTime(time))
 	
 	private def stringArrayItemToXml(text:String) = arrayItemToXml(Text(text)) /*Some(Elem(null, "value", new UnprefixedAttribute("arrayitem", Text("true"), Null), TopScope, Text(text)))*/
 	
 	private def arrayItemToXml(child:Node) = /*Some(*/Elem(null, "value", new UnprefixedAttribute("arrayitem", Text("true"), Null), TopScope, child)//)
 	
-	private def formatTimestamp(timestamp:Timestamp):String = if (null != timestamp) timestampFormatter.format(timestamp) else ""
-	private def formatDate(date:Date):String = if (null != date) dateFormatter.format(date) else ""
+	private def formatTimestamp(timestamp:DateTime):String = if (null != timestamp) ISO8601.formatTimestamp(timestamp) else ""
+	private def formatDate(date:LocalDate):String = if (null != date) ISO8601.formatDate(date) else ""
+    private def formatTime(time:LocalTime):String = if (null != time) ISO8601.formatTime(time) else ""
 	
 	private def tupleToXml(tuple:Product, nodeName:String, view:Option[Any]):Elem =
 	{

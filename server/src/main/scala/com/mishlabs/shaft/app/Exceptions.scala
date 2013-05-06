@@ -1,12 +1,12 @@
 package com.mishlabs.shaft
 package app
 
-protected case class PermissionDeniedException(reason:String) extends Exception(reason)
-protected case class AccessDeniedException extends Exception
-protected case class NotImplmentedException extends Exception
-protected case class ApiException(description:String) extends Exception(description)
-protected case class ValidationException(reason:String) extends Exception(reason)
-protected case class NotFoundException(reason:String) extends Exception(reason)
-protected case class ViewException(reason:String) extends Exception(reason)
+case class PermissionDeniedException(reason:String) extends Exception(reason)
+case class AccessDeniedException extends Exception
+case class NotImplmentedException extends Exception
+case class ApiException(description:String) extends Exception(description)
+case class ValidationException(reason:String) extends Exception(reason)
+case class NotFoundException(reason:String) extends Exception(reason)
+case class ViewException(reason:String) extends Exception(reason)
 		
 	

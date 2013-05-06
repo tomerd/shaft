@@ -2,10 +2,6 @@ package com.mishlabs.shaft
 package repository
 package squeryl
 
-//import java.util.Date
-//import java.util.UUID
-//import java.sql.Timestamp
-
 import org.squeryl._
 import org.squeryl.dsl._
 import org.squeryl.PrimitiveTypeMode._
@@ -28,7 +24,7 @@ protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao] exte
 		result.size match
 		{
 			case 0 => None
-			case 1 => Some(result.first)
+			case 1 => Some(result.head)
 			case count => throw new Exception("too many records matched this criteria, expected 1 fond %d".format(count))
 		}		
 	}
@@ -41,9 +37,9 @@ protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao] exte
 	
 	def update(entity:M):M = inTransaction { table.update(entity); entity }
 		
-	def delete(key:Long):Unit = inTransaction { table.delete(key) }
+	def delete(key:Long) { inTransaction { table.delete(key) } }
 	
-	def delete(keys:Iterable[Long]):Unit = inTransaction { table.deleteWhere( r => r.id in keys ) }
+	def delete(keys:Iterable[Long]) { inTransaction { table.deleteWhere( r => r.id in keys ) } }
 	
 	/*
 	private implicit def conditionToSqueryl(condition:Condition):Function1[D,QueryYield[D]] = 
@@ -64,11 +60,25 @@ protected abstract class SquerylStorage[M <: KeyedModel[Long, M], D <: Dao] exte
 		
 	}
 	*/
+
+    val serializer:SquerylSerializer[M, D]
 	
-	protected implicit def model2dao(model:M):D
-	protected implicit def dao2model(dao:D):M	
-	
-	//implicit def optdate2opttimestamp(optdate:Option[Date]):Option[Timestamp] = if (optdate.isDefined) Some(new Timestamp(optdate.get.getTime)) else None
-	
+	implicit def model2dao(model:M):D = serializer.toDao(model)
+	implicit def dao2model(dao:D):M = serializer.toModel(dao)
 	implicit def daoit2modelit(daoit:Iterable[D]):Iterable[M] = daoit.map(dao2model(_))
+    //implicit def optdate2opttimestamp(optdate:Option[Date]):Option[Timestamp] = if (optdate.isDefined) Some(new Timestamp(optdate.get.getTime)) else None
+}
+
+trait SquerylSerializer[M <: KeyedModel[Long, M], D <: Dao]
+{
+    def toDao(model:M):D
+    def toModel(dao:D):M
+}
+
+object DaoConversions
+{
+    implicit def timestamp2timetamp(d:org.joda.time.DateTime):java.sql.Timestamp = new java.sql.Timestamp(d.getMillis)
+    implicit def timestamp2timetamp2(d:java.sql.Timestamp):org.joda.time.DateTime = new org.joda.time.DateTime(d.getTime)
+    implicit def opttimestamp2opttimetamp(od:Option[org.joda.time.DateTime]):Option[java.sql.Timestamp] = od.flatMap( d => Some(new java.sql.Timestamp(d.getMillis)))
+    implicit def opttimestamp2opttimetamp2(od:Option[java.sql.Timestamp]):Option[org.joda.time.DateTime] = od.flatMap( d => Some(new org.joda.time.DateTime(d.getTime)))
 }

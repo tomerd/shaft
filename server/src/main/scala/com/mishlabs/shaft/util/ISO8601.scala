@@ -1,26 +1,40 @@
 package com.mishlabs.shaft.util
 
 import java.text.SimpleDateFormat
-import java.util.{ Date, TimeZone }
+import org.joda.time.{DateTime, LocalDate, LocalTime}
+import org.joda.time.format.ISODateTimeFormat
 
-// copied from https://github.com/softprops/hubcat/blob/master/src/main/scala/iso8601.scala
 object ISO8601 
 {
-  val FORMAT = "yyyy-MM-dd'T'HH:mm:ssz"
+    def parseTimestamp(s:String):DateTime =
+    {
+        // normalize string
+        var ns = if (s.endsWith("Z")) s.substring(0, s.size - 1) + "-00:00" else s.replaceAll("GMT", "")
+        ns = math.max(ns.lastIndexOf("+"), ns.lastIndexOf("-")) - ns.indexOf("T") match
+        {
+            case 13 => ns
+            case 9 => "%s.000%s".format(ns.substring(0, ns.size - 5), ns.substring(ns.size - 5, ns.size))
+            case _ => throw new Exception("invalid ISO8601 date")
+        }
+        ISODateTimeFormat.dateTime.parseDateTime(ns)
+    }
 
-  def apply(s: String) =
-  {
-    new SimpleDateFormat(FORMAT).parse(
-      if (s.endsWith("Z")) s.substring(0, s.size - 1) + "GMT-00:00"
-      else "%sGMT%s" format(s.substring(0, s.size - 6), s.substring(s.size - 6, s.size)))
-  }
+    def parseDate(s:String):LocalDate = ISODateTimeFormat.date.parseLocalDate(s)
 
-  def apply(d: Date) =
-  {
-    (new SimpleDateFormat(FORMAT) {
-      setTimeZone(TimeZone.getTimeZone( "UTC" ))
-    }.format(d) match {
-      case s => s.substring(0, s.size - 9) + s.substring(s.size - 6, s.size)
-    }) replaceAll( "UTC", "+00:00" )
-  }
+    def parseTime(s:String):LocalTime = ISODateTimeFormat.time.parseLocalTime(s)
+
+    def formatTimestamp(d:DateTime):String = ISODateTimeFormat.dateTime.print(d)
+
+    def formatDate(d:LocalDate):String = ISODateTimeFormat.date.print(d)
+
+    def formatTime(t:LocalTime):String = ISODateTimeFormat.time.print(t)
+
+    def formatTimestamp(d:java.util.Date):String = formatTimestamp(new DateTime(d))
+    def formatTimestamp(d:Long):String = formatTimestamp(new DateTime(d))
+
+    def formatDate(d:java.util.Date):String = formatDate(new LocalDate(d))
+    def formatDate(d:Long):String = formatDate(new LocalDate(d))
+
+    def formatTime(t:java.util.Date):String = formatTime(new LocalTime(t))
+    def formatTime(t:Long):String = formatTime(new LocalTime(t))
 }

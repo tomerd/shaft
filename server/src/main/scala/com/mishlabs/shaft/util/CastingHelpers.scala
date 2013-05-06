@@ -28,16 +28,16 @@ object CastingHelpers
 				}
 				case JArray(array)	=>
 				{
-					var list = mutable.ListBuffer[Node]()
-					json.children.foreach({ iterator:JValue } => list = list ++ build(iterator, true))
-					list
+					//var list = mutable.ListBuffer[Node]()
+					json.children.map( build(_, true) ).reduceLeft( _ ++ _ )
+					//list
 				}
 				case JObject(obj) 	=>
 				{
 					if (1 == json.children.size && json.children(0).isInstanceOf[JField]) return build(json.children(0))
-					var list = mutable.ListBuffer[Node]()
-					json.children.foreach({ iterator:JValue } => list = list ++ build(iterator))
-					list
+					//var list = mutable.ListBuffer[Node]()
+					json.children.map( build(_) ).reduceLeft( _ ++ _ )
+					//list
 				}
 				case _ => null
 			}
@@ -55,24 +55,43 @@ object CastingHelpers
 	{
 		def childElems(n:Node) = n.child.filter(_.getClass == classOf[Elem])
 		
-		def build(root:NodeSeq, fieldName:Option[String], argStack:List[JValue], noName:Boolean=false):List[JValue] = root match 
+		def build(root:NodeSeq, fieldName:Option[String], argStack:List[JValue], noName:Boolean=false):List[JValue] = root match
 		{
 			case n:Node =>
 			{
-				if (!n.attribute("arrayitem").isEmpty) 
+				if (n.attribute("arrayitem").isDefined)
 				{
-					JString(n.text) :: argStack
+                    (n.text match
+                    {
+                        case BooleanValue(b) => JBool(b)
+                        case IntValue(i) => JInt(i)
+                        case ShortValue(s) => JInt(s)
+                        case LongValue(l) => JInt(l)
+                        case DoubleValue(d) => JDouble(d)
+                        case FloatValue(f) => JDouble(f)
+                        case _ => JString(n.text)
+                    }) :: argStack
 				}
 				else if (1 == n.descendant.size)
 				{
-					JField(StringHelpers.camelifyMethod(n.label), JString(n.text)) :: argStack
+                    val value = n.text match
+                    {
+                        case BooleanValue(b) => JBool(b)
+                        case IntValue(i) => JInt(i)
+                        case ShortValue(s) => JInt(s)
+                        case LongValue(l) => JInt(l)
+                        case FloatValue(f) => JDouble(f)
+                        case DoubleValue(d) => JDouble(d)
+                        case _ => JString(n.text)
+                    }
+                    JField(/*StringHelpers.camelifyMethod(*/n.label/*)*/, value) :: argStack
 				}
 				else 
 				{
 					val arrayHint = !n.attribute("array").isEmpty
 					val children = childElems(n)
 					val allLabels = children.map(_.label)
-					val sameLabel = allLabels.size != 1 && allLabels.toList.removeDuplicates.size == 1
+					val sameLabel = allLabels.size != 1 && allLabels.toList.distinct.size == 1
 					if (sameLabel || arrayHint)
 					{
 						val arr = JArray(build(childElems(n), Some(n.label), Nil, true))
@@ -95,7 +114,7 @@ object CastingHelpers
 			}
 			case s:NodeSeq => s.toList.flatMap(e => build(e, if (noName) None else Some(e.label), Nil))
 		}
-		
-		return JObject(List(build(xml, Some(xml.label), Nil)(0).asInstanceOf[JField]))
+
+		JObject(List(build(xml, Some(xml.label), Nil)(0).asInstanceOf[JField]))
 	}
 }
