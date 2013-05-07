@@ -1,9 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+	
+	<parent>
+		<groupId>com.mishlabs</groupId>
+		<artifactId>shaft_${scala.version}</artifactId>
+		<version>${shaft.version}</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.mishlabs</groupId>
+	
 	<artifactId>shaft.server_${scala.version}</artifactId>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
@@ -11,11 +18,10 @@
 	<inceptionYear>2012</inceptionYear>
 	
 	<properties>
-		<scala.version>2.9.2</scala.version>
 		<ostrich.version>9.1.0</ostrich.version>
 		<guice.version>3.0</guice.version>
 		<!-- joda-time.version>2.2</joda-time.version -->
-		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>		
+		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>
 		<!-- unfiltered.version>0.5.3</unfiltered.version-->
 		<lift.version>2.5-M4</lift.version>
 		<!--naggati.version>2.2.1</naggati.version-->
@@ -24,42 +30,8 @@
 		<jetty.version>8.1.10.v20130312</jetty.version>		
 		<commons-fileupload.version>1.2.2</commons-fileupload.version>
 		<!--commons-math.version>2.2</commons-math.version-->
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
 	</properties>
-		
-	<repositories>
-		<repository>
-		  	<id>scala-tools.releases</id>
-		  	<name>Scala-Tools Dependencies Repository for Releases</name>
-		  	<url>http://scala-tools.org/repo-releases</url>
-		</repository>
-		<repository>
-		  	<id>scala-tools.snapshots</id>
-		  	<name>Scala-Tools Dependencies Repository for Snapshots</name>
-		  	<url>http://scala-tools.org/repo-snapshots</url>
-		  	<snapshots/>
-		</repository>
-		<repository> 
-			<id>sonatype-releases</id> 
-       		<name>Sonatype Releases Repository</name> 
-       		<url>http://oss.sonatype.org/content/repositories/releases/</url> 
-     	</repository>	
-     	<repository> 
-			<id>twittercom</id> 
-			<name>twitter.com</name> 
-			<url>http://maven.twttr.com/</url> 
-		</repository>
-	</repositories>
-	
-	<pluginRepositories>
-		<pluginRepository>
-			<id>scala-tools.releases</id>
-			<name>Scala-Tools Plugins Repository for Releases</name>
-			<url>http://scala-tools.org/repo-releases</url>
-		</pluginRepository>
-	</pluginRepositories>
-	
+
 	<dependencies>
 		<dependency>				
   			<groupId>com.twitter</groupId>
@@ -71,10 +43,10 @@
 		  <artifactId>guice</artifactId>
 		  <version>${guice.version}</version>
 		</dependency>
-		<!-- dependency> 
-			<groupId>joda-time</groupId> 
-			<artifactId>joda-time</artifactId> 
-			<version>${joda-time.version}</version> 
+		<!-- dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>${joda-time.version}</version>
 		</dependency -->
 		<dependency> 
 			<groupId>org.slf4j</groupId> 
@@ -82,11 +54,11 @@
 			<version>${slf4j-log4j.version}</version> 
 		</dependency>
 		<!-- unfiltered -->
-		<!-- dependency>				
+		<!-- dependency>
   			<groupId>net.databinder</groupId>
   			<artifactId>unfiltered_${scala.version}</artifactId>
   			<version>${unfiltered.version}</version>
-		</dependency-->		
+		</dependency-->
 		<!-- lift -->
 		<dependency>
 		    <groupId>net.liftweb</groupId>
@@ -99,7 +71,7 @@
 		    <version>${lift.version}</version>
 		    <!-- excluding old joda-time -->
 		    <!-- exclusions>
-		        <exclusion>  
+		        <exclusion>
 		          	<groupId>joda-time</groupId>
 		          	<artifactId>joda-time</artifactId>
 				</exclusion>
@@ -148,7 +120,7 @@
 		    <groupId>org.eclipse.jetty</groupId>
 		    <artifactId>jetty-rewrite</artifactId>
 		    <version>${jetty.version}</version>
-		</dependency-->	
+		</dependency-->
 		<!-- commons-fileupload -->
 		<dependency>
 			<groupId>commons-fileupload</groupId>
@@ -166,7 +138,7 @@
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-math</artifactId>
 		    <version>${commons-math.version}</version>
-		</dependency-->		
+		</dependency-->
 		<!-- testing -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -198,7 +170,7 @@
 				        <source>1.5</source>
 				        <target>1.5</target>
 				</configuration>
-            </plugin>		
+            </plugin>
 			<plugin>
 				<groupId>org.scala-tools</groupId>
 				<artifactId>maven-scala-plugin</artifactId>

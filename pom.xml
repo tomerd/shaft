@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.mishlabs</groupId>
+	<artifactId>shaft_${scala.version}</artifactId>
+	<version>${shaft.version}</version>
+	<packaging>pom</packaging>
+	<name>shaft server</name>
+	<inceptionYear>2012</inceptionYear>
+	
+	<properties>
+		<scala.version>2.9.2</scala.version>
+		<shaft.version>0.0.1</shaft.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+	</properties>
+	
+    <modules>
+        <module>server</module>
+        <module>shaft-squeryl</module>
+        <module>shaft-redis</module>
+        <module>shaft-scalate</module>
+        <!--module>shaft-bayeux</module-->
+    </modules>
+	
+	<repositories>
+		<repository>
+		  	<id>scala-tools.releases</id>
+		  	<name>Scala-Tools Dependencies Repository for Releases</name>
+		  	<url>http://scala-tools.org/repo-releases</url>
+		</repository>
+		<repository>
+		  	<id>scala-tools.snapshots</id>
+		  	<name>Scala-Tools Dependencies Repository for Snapshots</name>
+		  	<url>http://scala-tools.org/repo-snapshots</url>
+		  	<snapshots/>
+		</repository>
+		<repository> 
+			<id>sonatype-releases</id> 
+       		<name>Sonatype Releases Repository</name> 
+       		<url>http://oss.sonatype.org/content/repositories/releases/</url> 
+     	</repository>	
+     	<repository> 
+			<id>twittercom</id> 
+			<name>twitter.com</name> 
+			<url>http://maven.twttr.com/</url> 
+		</repository>
+		<repository>
+		  <id>typesafe</id>
+		  <name>Typesafe Repository</name>
+		  <url>http://repo.typesafe.com/typesafe/releases/</url>
+		</repository>
+	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+			<id>scala-tools.releases</id>
+			<name>Scala-Tools Plugins Repository for Releases</name>
+			<url>http://scala-tools.org/repo-releases</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>
