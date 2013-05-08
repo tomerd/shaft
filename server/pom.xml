@@ -4,15 +4,16 @@
 	
 	<parent>
 		<groupId>com.mishlabs</groupId>
-		<artifactId>shaft_${scala.version}</artifactId>
-		<version>${shaft.version}</version>
+        <!-- FIXME inject these -->
+        <artifactId>shaft_2.9.2</artifactId>
+        <version>0.0.1</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>shaft.server_${scala.version}</artifactId>
-	<version>0.0.1</version>
+	<!--version>0.0.1</version-->
 	<packaging>jar</packaging>
 	<name>shaft server</name>
 	<inceptionYear>2012</inceptionYear>
@@ -20,16 +21,11 @@
 	<properties>
 		<ostrich.version>9.1.0</ostrich.version>
 		<guice.version>3.0</guice.version>
-		<!-- joda-time.version>2.2</joda-time.version -->
 		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>
 		<!-- unfiltered.version>0.5.3</unfiltered.version-->
 		<lift.version>2.5-M4</lift.version>
-		<!--naggati.version>2.2.1</naggati.version-->
-		<!--vysper.version>0.7</vysper.version-->
-		<!--socketio-java.version>2.0.0</socketio-java.version-->
 		<jetty.version>8.1.10.v20130312</jetty.version>		
 		<commons-fileupload.version>1.2.2</commons-fileupload.version>
-		<!--commons-math.version>2.2</commons-math.version-->
 	</properties>
 
 	<dependencies>
@@ -77,19 +73,6 @@
 				</exclusion>
 			</exclusions -->
 		</dependency>
-		<!-- socket.io -->
-		<!--dependency>
-		    <groupId>org.scalatra.socketio-java</groupId>
-		    <artifactId>socketio-core</artifactId>
-		    <version>${socketio-java.version}</version>
-		</dependency-->
-		<!-- FIXME: need a way to explode this into webapp/scripts/cometd when building or packaging -->
-		<!--dependency>
-            <groupId>org.cometd.javascript</groupId>
-            <artifactId>cometd-javascript-jquery</artifactId>
-            <version>${cometd.version}</version>
-            <type>war</type>
-        </dependency-->
 		<!-- jetty  -->
 		<dependency>
 		    <groupId>org.eclipse.jetty</groupId>
@@ -106,11 +89,6 @@
 		    <artifactId>jetty-webapp</artifactId>
 		    <version>${jetty.version}</version>
 		</dependency>
-		<!--dependency>
-	        <groupId>org.eclipse.jetty</groupId>
-	        <artifactId>jetty-websocket</artifactId>
-	        <version>${jetty.version}</version>
-	    </dependency-->
 	    <dependency>
 	        <groupId>org.eclipse.jetty</groupId>
 	        <artifactId>jetty-util</artifactId>
@@ -133,25 +111,6 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.1</version>
 		</dependency>
-		<!-- commons-math -->
-		<!--dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-math</artifactId>
-		    <version>${commons-math.version}</version>
-		</dependency-->
-		<!-- testing -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.7</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-tools.testing</groupId>
-			<artifactId>specs_${scala.version}</artifactId>
-			<version>1.6.9</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 	
 	<build>
@@ -162,53 +121,6 @@
 	        <directory>src/main/resources</directory>
 	      </resource>
     	</resources>
-		<plugins>
-            <plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.0</version>
-				<configuration>
-				        <source>1.5</source>
-				        <target>1.5</target>
-				</configuration>
-            </plugin>
-			<plugin>
-				<groupId>org.scala-tools</groupId>
-				<artifactId>maven-scala-plugin</artifactId>
-				<version>2.14.1</version>
-				<configuration>
-					<charset>${project.build.sourceEncoding}</charset>
-					<jvmArgs>
-						<jvmArg>-Xmx1024m</jvmArg>
-						<!--jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg-->
-					</jvmArgs>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compile</goal>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.scala-tools</groupId>
-				<artifactId>maven-scala-plugin</artifactId>
-				<version>2.14.1</version>
-				<configuration>
-					<charset>${project.build.sourceEncoding}</charset>
-					<jvmArgs>
-						<jvmArg>-Xmx1024m</jvmArg>
-						<!--jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg-->
-					</jvmArgs>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
 
 </project>

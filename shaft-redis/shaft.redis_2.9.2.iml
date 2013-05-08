@@ -5,6 +5,7 @@
       <configuration>
         <option name="compilerLibraryLevel" value="Project" />
         <option name="compilerLibraryName" value="Maven: org.scala-lang:scala-compiler-bundle:2.9.2" />
+        <option name="languageLevel" value="Scala 2.9" />
         <option name="maximumHeapSize" value="1024" />
         <option name="vmOptions" value="" />
       </configuration>
@@ -65,8 +66,7 @@
     <orderEntry type="library" name="Maven: net.debasishg:redisclient_2.9.2:2.10" level="project" />
     <orderEntry type="library" name="Maven: commons-pool:commons-pool:1.6" level="project" />
     <orderEntry type="library" name="Maven: com.typesafe.akka:akka-actor:2.0.3" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.7" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.scala-tools.testing:specs_2.9.2:1.6.9" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe:config:0.3.1" level="project" />
   </component>
 </module>
 

@@ -5,6 +5,7 @@
       <configuration>
         <option name="compilerLibraryLevel" value="Project" />
         <option name="compilerLibraryName" value="Maven: org.scala-lang:scala-compiler-bundle:2.9.2" />
+        <option name="languageLevel" value="Scala 2.9" />
         <option name="maximumHeapSize" value="1024" />
         <option name="vmOptions" value="" />
       </configuration>
@@ -70,8 +71,6 @@
     <orderEntry type="library" name="Maven: org.cometd.java:cometd-java-client:2.4.0.RC2" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-client:7.6.0.RC1" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-websocket:7.6.0.RC1" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.7" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.scala-tools.testing:specs_2.9.2:1.6.9" level="project" />
   </component>
 </module>
 

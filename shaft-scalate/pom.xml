@@ -1,19 +1,21 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	
 	<parent>
 		<groupId>com.mishlabs</groupId>
-		<artifactId>shaft_${scala.version}</artifactId>
-		<version>${shaft.version}</version>
+        <!-- FIXME inject these -->
+        <artifactId>shaft_2.9.2</artifactId>
+        <version>0.0.1</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>shaft.scalate_${scala.version}</artifactId>
-	<version>${shaft.version}</version>
+    <!--version>0.0.1</version-->
 	<packaging>jar</packaging>
-	<name>shaft squeryl</name>
+	<name>shaft scalate</name>
 	<inceptionYear>2013</inceptionYear>
 	
 	<properties>
@@ -31,24 +33,12 @@
 		  	<artifactId>scalate-core_2.9</artifactId>
 		  	<version>${scalate.version}</version>  
 		</dependency>
-		<dependency>
+		<!--dependency>
 		 	 <groupId>org.fusesource.scalate</groupId>
 		  	<artifactId>scalate-test_2.9</artifactId>
 		  	<version>${scalate.version}</version>  
 		  	<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.7</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-tools.testing</groupId>
-			<artifactId>specs_${scala.version}</artifactId>
-			<version>1.6.9</version>
-			<scope>test</scope>
-		</dependency>
+		</dependency-->
 	</dependencies>
 	
 	<build>
@@ -59,35 +49,6 @@
 	        <directory>src/main/resources</directory>
 	      </resource>
     	</resources -->
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <version>2.14.1</version>
-                <configuration>
-                    <charset>${project.build.sourceEncoding}</charset>
-                    <jvmArgs>
-                        <jvmArg>-Xmx1024m</jvmArg>
-                        <!--jvmArg>-DpackageLinkDefs=file://${project.build.directory}/packageLinkDefs.properties</jvmArg-->
-                    </jvmArgs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
 	</build>
 	
 </project>

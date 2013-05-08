@@ -68,7 +68,7 @@ protected class JettyServer(config:WebServerConfig) extends WebServer[WebServerC
 		sslConnector.setKeyPassword(config.keystorePassword)
 		sslConnector.setPassword(config.keystorePassword)
 		server.addConnector(sslConnector)
-		
+
         /*
         val keystoreFilePath = ShaftServer.server.getClass.getClassLoader.getResource("webapp/resources/ssl/%s".format(config.keystoreFile))
         if (null == keystoreFilePath) throw new Exception ("webapp keystore file not found. expected at web/%s".format(config.keystoreFile))

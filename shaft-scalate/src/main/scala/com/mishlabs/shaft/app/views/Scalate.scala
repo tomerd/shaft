@@ -23,7 +23,7 @@ object Scalate extends ViewEngine with Logger
 	
 	// defaults	
 	val path = getClass.getClassLoader.getResource(".")
-    if (null == path) throw new Exception ("error retreiveing core path")
+    if (null == path) throw new Exception ("error retrieveing core path")
 	// TODO: read from config
 	engine.workingDirectory = new File("%s/tmp/scalate".format(path)) 
 	engine.allowReload = true
