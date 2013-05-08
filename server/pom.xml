@@ -24,7 +24,7 @@
 		<slf4j-log4j.version>1.6.2</slf4j-log4j.version>
 		<!-- unfiltered.version>0.5.3</unfiltered.version-->
 		<lift.version>2.5-M4</lift.version>
-		<jetty.version>8.1.10.v20130312</jetty.version>		
+		<jetty.version>9.0.2.v20130417</jetty.version>
 		<commons-fileupload.version>1.2.2</commons-fileupload.version>
 	</properties>
 
