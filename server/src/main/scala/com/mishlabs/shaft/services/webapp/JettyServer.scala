@@ -51,36 +51,33 @@ protected class JettyServer(config:WebServerConfig) extends WebServer[WebServerC
         server = new Server
 
         // HTTP Configuration
-        val http_config = new HttpConfiguration
-        http_config.setSecureScheme("https")
-        http_config.setSecurePort(config.sslPort)
-        http_config.setOutputBufferSize(32768)
+        val httpConfig = new HttpConfiguration
+        httpConfig.setSecureScheme("https")
+        httpConfig.setSecurePort(config.sslPort)
+        httpConfig.setOutputBufferSize(32768)
 
         // HTTP connector
-        val http = new ServerConnector(server, new HttpConnectionFactory(http_config))
+        val http = new ServerConnector(server, new HttpConnectionFactory(httpConfig))
         http.setPort(config.port)
         http.setIdleTimeout(30000)
 
         // SSL Context Factory for HTTPS and SPDY
-        val keystoreFilePath = ShaftServer.server.getClass.getClassLoader.getResource("webapp/resources/ssl/%s".format(config.keystoreFile))
-        if (null == keystoreFilePath) throw new Exception ("webapp keystore file not found. expected at web/%s".format(config.keystoreFile))
-
         val sslContextFactory = new SslContextFactory
         sslContextFactory.setKeyStoreType("PKCS12")
-        val keystoreResource = Resource.newSystemResource("webapp/resources/ssl/%s".format(config.keystoreFile))
+        val keystoreResource = Resource.newSystemResource("security/%s".format(config.keystoreFile))
         sslContextFactory.setKeyStoreResource(keystoreResource)
         //sslContextFactory.setKeyStorePath(keystoreFilePath.getFile)
         sslContextFactory.setKeyStorePassword(config.keystorePassword)
         sslContextFactory.setKeyManagerPassword(config.keystorePassword)
 
         // HTTPS Configuration
-        val https_config = new HttpConfiguration(http_config)
-        https_config.addCustomizer(new SecureRequestCustomizer)
+        val httpsConfig = new HttpConfiguration(httpConfig)
+        httpsConfig.addCustomizer(new SecureRequestCustomizer)
 
         // HTTPS connector
         val https = new ServerConnector(server,
-                                        new SslConnectionFactory(sslContextFactory,"http/1.1"),
-                                        new HttpConnectionFactory(https_config))
+                                        new SslConnectionFactory(sslContextFactory, "http/1.1"),
+                                        new HttpConnectionFactory(httpsConfig))
         https.setPort(config.sslPort)
         https.setIdleTimeout(500000)
 
